@@ -5,7 +5,7 @@ compiler:
   - clang
 
 before_script:
-  - sudo add-apt-repository ppa:beineri/opt-qt-5.10.1-trusty
+  - sudo add-apt-repository ppa:beineri/opt-qt-5.10.1-trusty -q
   - sudo apt-get repository -qq
   - sudo apt-get install qt510tools
   - mkdir build
