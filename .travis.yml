@@ -6,7 +6,6 @@ compiler:
 
 before_script:
   - sudo add-apt-repository ppa:beineri/opt-qt-5.10.1-trusty -y
-  - sudo apt-get repository -q
   - sudo apt-get install qt510tools -q
   - mkdir build
   - cd build
