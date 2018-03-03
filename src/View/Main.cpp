@@ -1,11 +1,17 @@
 #include <iostream>
 
-#include "Engine.h"
+#include <QApplication>
 
-int main() {
+#include "MainWindow.h"
+
+int main(int argc, char* argv[]) {
+	QApplication app(argc, argv);
+
 	std::cout << "This program has many features.\n";
 
-	Engine e;
+	MainWindow mw(nullptr);
 
-	return 0;
+	mw.show();
+
+	return app.exec();
 }

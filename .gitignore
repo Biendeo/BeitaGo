@@ -1,3 +1,5 @@
 .idea/
+.vs/
 bin/
-cmake*/
+CMakeOutput/
+CMakeLists.txt.user
