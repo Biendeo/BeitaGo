@@ -7,13 +7,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 # This is some magic for Qt.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(GOOGLE_TEST_DIR lib/googletest)
 add_subdirectory(${GOOGLE_TEST_DIR})
 
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
 set(QT5_LIBRARIES Qt5::Core Qt5::Gui Qt5::Widgets)
+
+set(DLIB_DIR lib/dlib)
+add_subdirectory(${DLIB_DIR})
 
 # All projects will use this include directory. It should hold files made public by the engine.
 include_directories(./include)
@@ -29,6 +31,10 @@ target_link_libraries(BeitaGo BeitaGoEngine ${QT5_LIBRARIES})
 add_executable(BeitaGoTest test/TestEngine.cpp)
 target_include_directories(BeitaGoTest PRIVATE ${GOOGLE_TEST_DIR}/googletest/include)
 target_link_libraries(BeitaGoTest BeitaGoEngine gtest)
+
+add_executable(TestDLIB test/TestDLIB.cpp)
+target_include_directories(TestDLIB PRIVATE ${DLIB_DIR})
+target_link_libraries(TestDLIB dlib)
 
 # This is just for testing variables. It clogs up the output though, so it's commented.
 
