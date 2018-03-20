@@ -18,7 +18,6 @@ namespace BeitaGo {
 	}
 
 	void Player::ActDecision(const Grid2& move) {
-		//TODO: The UI should check that the move is valid, otherwise the board will throw on this.
 		if (move != PASS) {
 			GetEngine().GetBoard().PlacePiece(move, GetColor());
 		}
