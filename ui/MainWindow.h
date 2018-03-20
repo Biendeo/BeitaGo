@@ -17,7 +17,7 @@ class MainWindow : public QMainWindow {
 
 	private:
 	Ui::MainWindow* ui;
-	Engine e;
+	BeitaGo::Engine e;
 
 	private slots:
 	void NewGame();

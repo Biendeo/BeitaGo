@@ -20,7 +20,7 @@ add_subdirectory(${DLIB_DIR})
 # All projects will use this include directory. It should hold files made public by the engine.
 include_directories(./include)
 
-add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h)
+add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h)
 
 add_executable(BeitaGo src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui)
 # All QObjects sit in the UI folder. While you technically can include .cpp files from here, you
@@ -28,7 +28,10 @@ add_executable(BeitaGo src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/Ma
 target_include_directories(BeitaGo PRIVATE ui)
 target_link_libraries(BeitaGo BeitaGoEngine ${QT5_LIBRARIES})
 
-add_executable(BeitaGoTest test/TestEngine.cpp)
+add_executable(BeitaGoASCII src/Ascii/Main.cpp)
+target_link_libraries(BeitaGoASCII BeitaGoEngine)
+
+add_executable(BeitaGoTest test/TestMain.cpp test/TestEngine.h test/TestGrid2.h)
 target_include_directories(BeitaGoTest PRIVATE ${GOOGLE_TEST_DIR}/googletest/include)
 target_link_libraries(BeitaGoTest BeitaGoEngine gtest)
 
