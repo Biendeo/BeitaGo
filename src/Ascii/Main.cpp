@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "AIPlayer.h"
 #include "HumanPlayer.h"
@@ -73,7 +74,7 @@ Grid2 AskForHumanMove() {
 	int y = -1;
 	sscanf_s(inputString.c_str(), "%d %d", &x, &y);
 	if (x == -1 || y == -1) {
-		return Player::PASS;
+		return PASS;
 	} else {
 		return Grid2(x, y);
 	}

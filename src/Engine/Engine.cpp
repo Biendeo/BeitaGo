@@ -30,7 +30,19 @@ namespace BeitaGo {
 		return *_board;
 	}
 
+	const Board& Engine::GetBoard() const {
+		return *_board;
+	}
+
 	Player& Engine::GetCurrentPlayer() {
+		if (GetPlayer1().GetColor() == GetBoard().GetWhoseTurn()) {
+			return GetPlayer1();
+		} else {
+			return GetPlayer2();
+		}
+	}
+
+	const Player& Engine::GetCurrentPlayer() const {
 		if (GetPlayer1().GetColor() == GetBoard().GetWhoseTurn()) {
 			return GetPlayer1();
 		} else {
@@ -42,7 +54,15 @@ namespace BeitaGo {
 		return *_player1;
 	}
 
+	const Player& Engine::GetPlayer1() const {
+		return *_player1;
+	}
+
 	Player& Engine::GetPlayer2() {
+		return *_player2;
+	}
+
+	const Player& Engine::GetPlayer2() const {
 		return *_player2;
 	}
 }

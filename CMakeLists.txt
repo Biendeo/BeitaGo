@@ -3,6 +3,7 @@ project(BeitaGo)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # This is some magic for Qt.
 set(CMAKE_AUTOMOC ON)

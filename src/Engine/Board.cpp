@@ -1,5 +1,8 @@
 #include "Board.h"
 
+#include <sstream>
+#include <stdexcept>
+
 namespace BeitaGo {
 	Board::Board(const Grid2& dimensions) : _dimensions(dimensions) {
 		_tiles = std::vector<std::vector<Color>>(dimensions.X());
@@ -33,8 +36,22 @@ namespace BeitaGo {
 	}
 
 	void Board::PlacePiece(const Grid2& position, Color color) {
-		//TODO: This should be a valid move, but throw here if this is bad.
-		_tiles[position.X()][position.Y()] = color;
+		if (IsMoveValid(position, color)) {
+			_tiles[position.X()][position.Y()] = color;
+		} else {
+			std::stringstream s;
+			s << "Board tried to place a " << (color == Color::Black ? "BLACK" : "WHITE") << " piece at (" << position.X() << ", " << position.Y() << ") but it is invalid. Your AI or UI should check IsMoveValid() is true before calling PlacePiece() or ActDecision()!";
+			throw std::runtime_error(s.str());
+		}
+	}
+
+	bool Board::IsMoveValid(const Grid2& position, Color color) const {
+		if (position.X() >= 0 && position.X() < GetDimensions().X() && position.Y() >= 0 && position.Y() < GetDimensions().Y() && GetTile(position) == Color::None) {
+			//TODO: Use greater scrutiny here.
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	void Board::NextTurn() {
