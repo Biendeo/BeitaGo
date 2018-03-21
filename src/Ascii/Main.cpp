@@ -2,8 +2,9 @@
 #include <string>
 
 #include "AIPlayer.h"
-#include "HumanPlayer.h"
+#include "DumbAIPlayer.h"
 #include "Engine.h"
+#include "HumanPlayer.h"
 
 using namespace BeitaGo;
 
@@ -14,7 +15,7 @@ int main(int argc, char* argv[]) {
 	std::cout << "This just is an ASCII version of the game to test it before using the UI.\n";
 
 	Engine e;
-	e.NewGame();
+	e.NewGame(Grid2(9, 9), new HumanPlayer(e, Color::Black), new DumbAIPlayer(e, Color::White));
 
 	HumanPlayer& humanPlayer = dynamic_cast<HumanPlayer&>(e.GetPlayer1());
 	AIPlayer& aiPlayer = dynamic_cast<AIPlayer&>(e.GetPlayer2());

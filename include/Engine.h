@@ -17,10 +17,12 @@ namespace BeitaGo {
 		~Engine();
 
 		/**
-		 * Starts a new game with a 19x19 board size, a human player as black, and a dumb AI as
-		 * white.
+		 * Starts a new game with the given board dimensions and player objects.
+		 * @param boardDimensions
+		 * @param player1
+		 * @param player2
 		 */
-		void NewGame();
+		void NewGame(const Grid2& boardDimensions, Player* player1, Player* player2);
 
 		/**
 		 * Returns the current board element.

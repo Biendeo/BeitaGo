@@ -19,11 +19,13 @@ namespace BeitaGo {
 		delete _player2;
 	}
 
-	void Engine::NewGame() {
+	void Engine::NewGame(const Grid2& boardDimensions, Player* player1, Player* player2) {
 		//TODO: Make these customisable.
-		_board = new Board(Grid2(19, 19));
-		_player1 = new HumanPlayer(*this, Color::Black);
-		_player2 = new DumbAIPlayer(*this, Color::White);
+		_board = new Board(boardDimensions);
+		_player1 = player1;
+		_player2 = player2;
+		//_player1 = new HumanPlayer(*this, Color::Black);
+		//_player2 = new DumbAIPlayer(*this, Color::White);
 	}
 
 	Board& Engine::GetBoard() {

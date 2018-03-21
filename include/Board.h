@@ -4,6 +4,7 @@
 
 #include "Constants.h"
 #include "Grid2.h"
+#include "MoveHistoryEntry.h"
 
 namespace BeitaGo {
 	/**
@@ -68,13 +69,33 @@ namespace BeitaGo {
 		bool IsMoveValid(const Grid2& position, Color color) const;
 
 		/**
+		 * Returns whether the given position is within the grounds of the board.
+		 * @param position
+		 * @return
+		 */
+		bool IsWithinBoard(const Grid2& position) const;
+
+		/**
+		 * Returns how many liberties a tile has, or -1 if the tile is None or off the board.
+		 * @param position
+		 * @return
+		 */
+		int GetLiberties(const Grid2& position) const;
+
+		/**
 		 * Tells the board that the turn is over.
 		 */
 		void NextTurn();
 
 		private:
+		/**
+		 * After placing a move, this clears any possible tiles that can be removed.
+		 */
+		void ClearPossibleTiles(const Grid2& position);
+
 		Grid2 _dimensions;
 		std::vector<std::vector<Color>> _tiles;
+		std::vector<MoveHistoryEntry> _history;
 
 		Color _whoseTurn;
 		int _turnCount;
