@@ -32,8 +32,8 @@ These are all the features that I intend to make. They're a bit rough right now,
 - [ ] AI
 
 ### UI
-- [ ] Draw board
-- [ ] Draw board pieces
-- [ ] User interaction
+- [x] Draw board
+- [x] Draw board pieces
+- [x] User interaction
 - [ ] Customisable board/AI settings
 - [ ] Savable sessions
