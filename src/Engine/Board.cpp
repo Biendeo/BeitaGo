@@ -108,9 +108,9 @@ namespace BeitaGo {
 		Color opponentColor = color == Color::Black ? Color::White : Color::Black;
 
 		spacesToCheck.push(position);
+		checkedSpaces.insert(position);
 		while (!spacesToCheck.empty()) {
 			Grid2 currentSpace = spacesToCheck.front();
-			checkedSpaces.insert(currentSpace);
 			spacesToCheck.pop();
 			// Any tile outside of the board can be ignored, as they'll still border the territory.
 			if (IsWithinBoard(currentSpace)) {
@@ -122,15 +122,19 @@ namespace BeitaGo {
 					} else {
 						if (checkedSpaces.find(currentSpace + Grid2(1, 0)) == checkedSpaces.end()) {
 							spacesToCheck.push(currentSpace + Grid2(1, 0));
+							checkedSpaces.insert(currentSpace + Grid2(1, 0));
 						}
 						if (checkedSpaces.find(currentSpace + Grid2(0, 1)) == checkedSpaces.end()) {
 							spacesToCheck.push(currentSpace + Grid2(0, 1));
+							checkedSpaces.insert(currentSpace + Grid2(0, 1));
 						}
 						if (checkedSpaces.find(currentSpace + Grid2(-1, 0)) == checkedSpaces.end()) {
 							spacesToCheck.push(currentSpace + Grid2(-1, 0));
+							checkedSpaces.insert(currentSpace + Grid2(-1, 0));
 						}
 						if (checkedSpaces.find(currentSpace + Grid2(0, -1)) == checkedSpaces.end()) {
 							spacesToCheck.push(currentSpace + Grid2(0, -1));
+							checkedSpaces.insert(currentSpace + Grid2(0, -1));
 						}
 					}
 				} else if (GetTile(currentSpace) == opponentColor) {

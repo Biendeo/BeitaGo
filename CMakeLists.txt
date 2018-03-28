@@ -50,11 +50,17 @@ endforeach()
 
 # On Windows, Qt needs this deployment options to add the right DLLs next to it. I dunno about
 # other platforms though.
+# Also, on Visual Studio, it uses an extra suffix here, so add that.
 IF(WIN32)
     IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(BEITA_GO_DEBUG_STATUS debug)
     ELSE()
         set(BEITA_GO_DEBUG_STATUS release)
     ENDIF()
-    add_custom_command(TARGET BeitaGo POST_BUILD COMMAND ${CMAKE_PREFIX_PATH}/bin/windeployqt.exe ARGS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/BeitaGo.exe --${BEITA_GO_DEBUG_STATUS} --no-system-d3d-compiler COMMENT "Deploying Qt Windows ${BEITA_GO_DEBUG_STATUS} libraries...")
+    if(MSVC)
+        add_custom_command(TARGET BeitaGo POST_BUILD COMMAND ${CMAKE_PREFIX_PATH}/bin/windeployqt.exe ARGS $(OutDir)BeitaGo.exe COMMENT "Deploying Qt Windows ${BEITA_GO_DEBUG_STATUS} libraries...")
+        set(gtest_force_shared_crt ON CACHE BOOL "Always use msvcrt.dll" FORCE)
+    ELSE()
+        add_custom_command(TARGET BeitaGo POST_BUILD COMMAND ${CMAKE_PREFIX_PATH}/bin/windeployqt.exe ARGS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${MSVC_EXTRA_OUTPUT_DIR}/BeitaGo.exe --${BEITA_GO_DEBUG_STATUS} --no-system-d3d-compiler COMMENT "Deploying Qt Windows ${BEITA_GO_DEBUG_STATUS} libraries...")
+    ENDIF()
 ENDIF()
