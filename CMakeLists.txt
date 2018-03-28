@@ -23,7 +23,7 @@ include_directories(./include)
 
 add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h src/Engine/MoveHistoryEntry.cpp include/MoveHistoryEntry.h)
 
-add_executable(BeitaGo src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui)
+add_executable(BeitaGo src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui ui/BoardView.cpp ui/BoardView.h)
 # All QObjects sit in the UI folder. While you technically can include .cpp files from here, you
 # won't get far with that.
 target_include_directories(BeitaGo PRIVATE ui)

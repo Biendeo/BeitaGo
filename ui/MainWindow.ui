@@ -10,10 +10,27 @@
     <height>600</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>BeitaGo</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="cursor">
+    <cursorShape>ArrowCursor</cursorShape>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout"/>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -39,7 +56,11 @@
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="sizeGripEnabled">
+    <bool>false</bool>
+   </property>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>

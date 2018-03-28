@@ -1,6 +1,10 @@
 #pragma once
 
+#include <QImage>
 #include <QMainWindow>
+#include <QString>
+
+#include "BoardView.h"
 
 #include "Engine.h"
 
@@ -16,11 +20,19 @@ class MainWindow : public QMainWindow {
 	~MainWindow();
 
 	private:
-	Ui::MainWindow* ui;
-	BeitaGo::Engine e;
+	Ui::MainWindow* _ui;
+	BeitaGo::Engine _e;
+	BoardView* _boardView;
+
+	void DispatchMessage(const QString& str);
 
 	private slots:
 	void NewGame();
 	void CloseWindow();
 	void ShowAbout();
+
+	void UserClicked(BeitaGo::Grid2 position);
+	void BoardUpdated();
+	void BoardSizeUpdated(QSize size);
+
 };
