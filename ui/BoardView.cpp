@@ -1,7 +1,3 @@
-//
-// Created by Thomas on 27/03/2018.
-//
-
 #include "BoardView.h"
 
 #include <QMouseEvent>
