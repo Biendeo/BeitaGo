@@ -48,10 +48,7 @@ class GTPEngine {
 
 	struct GTPVertex {
 		public:
-		GTPVertex(const std::string& str) {
-			// Boards are assumed up to 25 in size, so one character suffices.
-			val = BeitaGo::Grid2(LetterToColumn(str[0]) + std::stoi(str.substr(1)));
-		}
+		GTPVertex(const std::string& str) : val(LetterToColumn(str[0]), std::stoi(str.substr(1)) - 1) {}
 		GTPVertex(const BeitaGo::Grid2& grid) : val(grid) {}
 
 		operator BeitaGo::Grid2() { return val; }
@@ -73,7 +70,7 @@ class GTPEngine {
 		GTPColor(BeitaGo::Color color) : val(color) {}
 
 		operator BeitaGo::Color() { return val; }
-		operator std::string() { val == BeitaGo::Color::White ? "white" : "black"; }
+		operator std::string() { return val == BeitaGo::Color::White ? "white" : "black"; }
 		BeitaGo::Color& operator=(BeitaGo::Color color) { return val = color; }
 
 		BeitaGo::Color val;
@@ -92,7 +89,7 @@ class GTPEngine {
 		}
 		GTPMove(const GTPColor& col, const GTPVertex& vert) : color(col), vertex(vert) {}
 
-		operator std::string() { return static_cast<std::string>(color) + static_cast<std::string>(vertex); }
+		operator std::string() { return static_cast<std::string>(color) + " " + static_cast<std::string>(vertex); }
 		GTPColor Color() const { return color; }
 		GTPVertex Vertex() const { return vertex; }
 

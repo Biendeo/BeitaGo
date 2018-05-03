@@ -253,9 +253,10 @@ void GTPEngine::GenMove(int id, const std::vector<std::string>& arguments) {
 }
 
 void GTPEngine::ShowBoard(int id, const std::vector<std::string>& arguments) const {
-	std::cout << "\n";
+	std::cout << "=\n";
+	std::cout << "00\nBoard state:\n";
 	PrintBoard();
-	PrintSuccessResponse(id, "");
+	std::cout << "\n";
 }
 
 void GTPEngine::PrintSuccessResponse(int id, const std::string& message) const {
@@ -312,6 +313,7 @@ std::string GTPEngine::PreprocessInput(const std::string& input) const {
 
 void GTPEngine::PrintBoard() const {
 	for (int y = _engine.GetBoard().GetDimensions().Y() - 1; y >= 0; --y) {
+		std::cout << " ";
 		for (int x = 0; x < _engine.GetBoard().GetDimensions().X(); ++x) {
 			BeitaGo::Color color = _engine.GetBoard().GetTile(BeitaGo::Grid2(x, y));
 			if (color == BeitaGo::Color::Black) {
