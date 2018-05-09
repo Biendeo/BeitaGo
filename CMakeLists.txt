@@ -9,25 +9,33 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
+message("BeitaGo: Adding googletest")
 set(GOOGLE_TEST_DIR lib/googletest)
 add_subdirectory(${GOOGLE_TEST_DIR})
 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
-set(QT5_LIBRARIES Qt5::Core Qt5::Gui Qt5::Widgets)
+if(NOT NO_QT)
+    message("BeitaGo: Adding Qt")
+    find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
+    set(QT5_LIBRARIES Qt5::Core Qt5::Gui Qt5::Widgets)
+endif()
 
+message("BeitaGo: Adding dlib")
 set(DLIB_DIR lib/dlib)
 add_subdirectory(${DLIB_DIR})
 
+message("BeitaGo: Making projects")
 # All projects will use this include directory. It should hold files made public by the engine.
 include_directories(./include)
 
 add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h src/Engine/MoveHistoryEntry.cpp include/MoveHistoryEntry.h)
 
-add_executable(BeitaGo src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui ui/BoardView.cpp ui/BoardView.h)
-# All QObjects sit in the UI folder. While you technically can include .cpp files from here, you
-# won't get far with that.
-target_include_directories(BeitaGo PRIVATE ui)
-target_link_libraries(BeitaGo BeitaGoEngine ${QT5_LIBRARIES})
+if(NOT NO_QT)
+    add_executable(BeitaGoQt src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui ui/BoardView.cpp ui/BoardView.h)
+    # All QObjects sit in the UI folder. While you technically can include .cpp files from here, you
+    # won't get far with that.
+    target_include_directories(BeitaGoQt PRIVATE ui)
+    target_link_libraries(BeitaGoQt BeitaGoEngine ${QT5_LIBRARIES})
+endif()
 
 add_executable(BeitaGoASCII src/Ascii/Main.cpp)
 target_link_libraries(BeitaGoASCII BeitaGoEngine)
@@ -44,17 +52,17 @@ target_include_directories(TestDLIB PRIVATE ${DLIB_DIR})
 target_link_libraries(TestDLIB dlib)
 
 # This is just for testing variables. It clogs up the output though, so it's commented.
-
-get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+#get_cmake_property(_variableNames VARIABLES)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
 
 
 # On Windows, Qt needs this deployment options to add the right DLLs next to it. I dunno about
 # other platforms though.
 # Also, on Visual Studio, it uses an extra suffix here, so add that.
-IF(WIN32)
+IF(WIN32 AND NOT NO_QT)
+    message("BeitaGo: Making BeitaGoQt post-build deployment")
     IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(BEITA_GO_DEBUG_STATUS debug)
     ELSE()
@@ -66,5 +74,5 @@ IF(WIN32)
     #ELSE()
         #add_custom_command(TARGET BeitaGo POST_BUILD COMMAND ${CMAKE_PREFIX_PATH}/bin/windeployqt.exe ARGS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${MSVC_EXTRA_OUTPUT_DIR}/BeitaGo.exe --${BEITA_GO_DEBUG_STATUS} --no-system-d3d-compiler COMMENT "Deploying Qt Windows ${BEITA_GO_DEBUG_STATUS} libraries...")
     ENDIF()
-    add_custom_command(TARGET BeitaGo POST_BUILD COMMAND ${CMAKE_PREFIX_PATH}/bin/windeployqt.exe ARGS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${MSVC_EXTRA_OUTPUT_DIR}/BeitaGo.exe --${BEITA_GO_DEBUG_STATUS} --no-system-d3d-compiler COMMENT "Deploying Qt Windows ${BEITA_GO_DEBUG_STATUS} libraries...")
+    add_custom_command(TARGET BeitaGoQt POST_BUILD COMMAND ${CMAKE_PREFIX_PATH}/bin/windeployqt.exe ARGS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${MSVC_EXTRA_OUTPUT_DIR}/BeitaGo.exe --${BEITA_GO_DEBUG_STATUS} --no-system-d3d-compiler COMMENT "Deploying Qt Windows ${BEITA_GO_DEBUG_STATUS} libraries...")
 ENDIF()
