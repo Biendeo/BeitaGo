@@ -5,6 +5,8 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <iostream>
+
 namespace BeitaGo {
 	Board::Board(const Grid2& dimensions) : _dimensions(dimensions) {
 		_tiles = std::vector<std::vector<Color>>(dimensions.X());
@@ -42,11 +44,12 @@ namespace BeitaGo {
 			_tiles[position.X()][position.Y()] = color;
 			_history.emplace_back(position, color);
 			//TODO: Double check if you can solve this by just checking the neighbouring tiles.
-			for (int y = 0; y < GetDimensions().Y(); ++y) {
-				for (int x = 0; x < GetDimensions().X(); ++x) {
-					ClearPossibleTiles(Grid2(x, y));
-				}
-			}
+			// When placing a piece, only the neighbouring tiles' liberties are changed, so you
+			// only need to check whether those should be removed.
+			ClearPossibleTiles(position + Grid2(1, 0));
+			ClearPossibleTiles(position + Grid2(0, 1));
+			ClearPossibleTiles(position + Grid2(-1, 0));
+			ClearPossibleTiles(position + Grid2(0, -1));
 		} else {
 			std::stringstream s;
 			s << "Board tried to place a " << (color == Color::Black ? "BLACK" : "WHITE") << " piece at (" << position.X() << ", " << position.Y() << ") but it is invalid. Your AI or UI should check IsMoveValid() is true before calling PlacePiece() or ActDecision()!";
@@ -61,6 +64,10 @@ namespace BeitaGo {
 		} else {
 			return false;
 		}
+	}
+
+	bool Board::IsWithinBoard(const Grid2& position) const {
+		return position.X() >= 0 && position.X() < GetDimensions().X() && position.Y() >= 0 && position.Y() < GetDimensions().Y();
 	}
 
 	int Board::GetLiberties(const Grid2& position) const {
@@ -84,8 +91,71 @@ namespace BeitaGo {
 		}
 	}
 
-	bool Board::IsWithinBoard(const Grid2& position) const {
-		return position.X() >= 0 && position.X() < GetDimensions().X() && position.Y() >= 0 && position.Y() < GetDimensions().Y();
+	std::vector<Grid2> Board::GetGroup(const Grid2& position) const {
+		if (IsWithinBoard(position) && GetTile(position) != Color::None) {
+			Color color = GetTile(position);
+			auto setComp = [](const Grid2& a, const Grid2& b) { return a.X() < b.X() || (a.X() == b.X() && a.Y() < b.Y()); };
+			std::set<Grid2, decltype(setComp)> checkedSpaces(setComp);
+			std::set<Grid2, decltype(setComp)> connectedSpaces(setComp);
+			std::queue<Grid2> spacesToCheck;
+
+			spacesToCheck.push(position);
+			checkedSpaces.insert(position);
+
+			while (!spacesToCheck.empty()) {
+				Grid2 currentSpace = spacesToCheck.front();
+				spacesToCheck.pop();
+				// Any tile outside of the board can be ignored, as they'll still border the territory.
+				if (IsWithinBoard(currentSpace) && GetTile(currentSpace) == color) {
+					connectedSpaces.insert(currentSpace);
+					if (checkedSpaces.find(currentSpace + Grid2(1, 0)) == checkedSpaces.end()) {
+						spacesToCheck.push(currentSpace + Grid2(1, 0));
+						checkedSpaces.insert(currentSpace + Grid2(1, 0));
+					}
+					if (checkedSpaces.find(currentSpace + Grid2(0, 1)) == checkedSpaces.end()) {
+						spacesToCheck.push(currentSpace + Grid2(0, 1));
+						checkedSpaces.insert(currentSpace + Grid2(0, 1));
+					}
+					if (checkedSpaces.find(currentSpace + Grid2(-1, 0)) == checkedSpaces.end()) {
+						spacesToCheck.push(currentSpace + Grid2(-1, 0));
+						checkedSpaces.insert(currentSpace + Grid2(-1, 0));
+					}
+					if (checkedSpaces.find(currentSpace + Grid2(0, -1)) == checkedSpaces.end()) {
+						spacesToCheck.push(currentSpace + Grid2(0, -1));
+						checkedSpaces.insert(currentSpace + Grid2(0, -1));
+					}
+				}
+			}
+			return std::vector<Grid2>(connectedSpaces.begin(), connectedSpaces.end());
+		} else {
+			return std::vector<Grid2>();
+		}
+	}
+
+	int Board::GetGroupLiberties(const std::vector<Grid2>& group) const {
+		if (group.size() == 0) {
+			return 0;
+		}
+		Color color = GetTile(group[0]);
+		auto setComp = [](const Grid2& a, const Grid2& b) { return a.X() < b.X() || (a.X() == b.X() && a.Y() < b.Y()); };
+		std::set<Grid2, decltype(setComp)> checkedSpaces(setComp);
+		std::set<Grid2, decltype(setComp)> connectedLiberties(setComp);
+
+		for (const Grid2& space : group) {
+			std::vector<Grid2> neighbouringSpaces;
+			neighbouringSpaces.emplace_back(space + Grid2(1, 0));
+			neighbouringSpaces.emplace_back(space + Grid2(0, 1));
+			neighbouringSpaces.emplace_back(space + Grid2(-1, 0));
+			neighbouringSpaces.emplace_back(space + Grid2(0, -1));
+
+			for (const Grid2& neighbouringSpace : neighbouringSpaces) {
+				if (IsWithinBoard(neighbouringSpace) && GetTile(neighbouringSpace) == Color::None) {
+					connectedLiberties.insert(neighbouringSpace);
+				}
+			}
+		}
+
+		return static_cast<int>(connectedLiberties.size());
 	}
 
 	void Board::NextTurn() {
@@ -94,64 +164,14 @@ namespace BeitaGo {
 	}
 
 	void Board::ClearPossibleTiles(const Grid2& position) {
-		// Since we know the last move based on the history, just do a breadth-first search to see
-		// if it's trapped.
-		auto setComp = [](const Grid2& a, const Grid2& b) { return a.X() < b.X() || (a.X() == b.X() && a.Y() < b.Y()); };
-		std::set<Grid2, decltype(setComp)> checkedSpaces(setComp);
-		std::set<Grid2, decltype(setComp)> connectedSpaces(setComp);
-		std::queue<Grid2> spacesToCheck;
-
-		Color color = GetTile(position);
-		if (color == Color::None) {
+		if (!IsWithinBoard(position)) {
 			return;
 		}
-		Color opponentColor = color == Color::Black ? Color::White : Color::Black;
-
-		spacesToCheck.push(position);
-		checkedSpaces.insert(position);
-		while (!spacesToCheck.empty()) {
-			Grid2 currentSpace = spacesToCheck.front();
-			spacesToCheck.pop();
-			// Any tile outside of the board can be ignored, as they'll still border the territory.
-			if (IsWithinBoard(currentSpace)) {
-				if (GetTile(currentSpace) == color) {
-					connectedSpaces.insert(currentSpace);
-					if (GetLiberties(currentSpace) > 0) {
-						// If a same color tile has liberties, the block won't be removed.
-						return;
-					} else {
-						if (checkedSpaces.find(currentSpace + Grid2(1, 0)) == checkedSpaces.end()) {
-							spacesToCheck.push(currentSpace + Grid2(1, 0));
-							checkedSpaces.insert(currentSpace + Grid2(1, 0));
-						}
-						if (checkedSpaces.find(currentSpace + Grid2(0, 1)) == checkedSpaces.end()) {
-							spacesToCheck.push(currentSpace + Grid2(0, 1));
-							checkedSpaces.insert(currentSpace + Grid2(0, 1));
-						}
-						if (checkedSpaces.find(currentSpace + Grid2(-1, 0)) == checkedSpaces.end()) {
-							spacesToCheck.push(currentSpace + Grid2(-1, 0));
-							checkedSpaces.insert(currentSpace + Grid2(-1, 0));
-						}
-						if (checkedSpaces.find(currentSpace + Grid2(0, -1)) == checkedSpaces.end()) {
-							spacesToCheck.push(currentSpace + Grid2(0, -1));
-							checkedSpaces.insert(currentSpace + Grid2(0, -1));
-						}
-					}
-				} else if (GetTile(currentSpace) == opponentColor) {
-					// Do nothing here, this is how we know we're surrounded (similar to off the
-					// board spaces.
-				} else {
-					// This shouldn't appear (just because liberties are checked already, but just
-					// return.
-					return;
-				}
+		std::vector<Grid2> group = GetGroup(position);
+		if (GetGroupLiberties(group) == 0) {
+			for (const Grid2& space : group) {
+				_tiles[space.X()][space.Y()] = Color::None;
 			}
-		}
-
-		// If the function is up to here, then we didn't find any tiles with liberties, and thus
-		// they need to be removed.
-		for (const auto& space : connectedSpaces) {
-			_tiles[space.X()][space.Y()] = Color::None;
 		}
 	}
 }

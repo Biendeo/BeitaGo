@@ -83,6 +83,21 @@ namespace BeitaGo {
 		int GetLiberties(const Grid2& position) const;
 
 		/**
+		 * Returns all the tiles that are of the same color and are adjacent to this tile, or
+		 * nothing if this doesn't point to a tile.
+		 * @param position
+		 * @return
+		 */
+		std::vector<Grid2> GetGroup(const Grid2& position) const;
+
+		/**
+		 * Returns how many liberties a group has.
+		 * @param group
+		 * @return
+		 */
+		int GetGroupLiberties(const std::vector<Grid2>& group) const;
+
+		/**
 		 * Tells the board that the turn is over.
 		 */
 		void NextTurn();
