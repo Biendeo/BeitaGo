@@ -12,7 +12,7 @@ namespace BeitaGo {
 			return PASS;
 		} else {
 			std::mt19937 rand(static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count()));
-			std::uniform_int_distribution<int> distribution(0, validMoves.size() - 1);
+			std::uniform_int_distribution<int> distribution(0, static_cast<int>(validMoves.size()) - 1);
 			return validMoves[distribution(rand)];
 		}
 	}

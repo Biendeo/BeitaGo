@@ -56,21 +56,13 @@ TEST(EngineTest, RegionDestroyTest) {
 	}
 
 	player1.ActDecision(Grid2(2, 2));
-	PrintBoard(e.GetBoard());
 	player2.ActDecision(Grid2(2, 3));
-	PrintBoard(e.GetBoard());
 	player1.ActDecision(PASS);
-	PrintBoard(e.GetBoard());
 	player2.ActDecision(Grid2(3, 2));
-	PrintBoard(e.GetBoard());
 	player1.ActDecision(PASS);
-	PrintBoard(e.GetBoard());
 	player2.ActDecision(Grid2(2, 1));
-	PrintBoard(e.GetBoard());
 	player1.ActDecision(PASS);
-	PrintBoard(e.GetBoard());
 	player2.ActDecision(Grid2(1, 2));
-	PrintBoard(e.GetBoard());
 
 	ASSERT_EQ(e.GetBoard().GetTile(Grid2(2, 2)), Color::None);
 	ASSERT_EQ(e.GetBoard().GetTile(Grid2(2, 3)), Color::White);

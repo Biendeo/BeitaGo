@@ -73,7 +73,11 @@ Grid2 AskForHumanMove() {
 
 	int x = -1;
 	int y = -1;
+#ifdef WIN32
 	sscanf_s(inputString.c_str(), "%d %d", &x, &y);
+#else
+	sscanf(inputString.c_str(), "%d %d", &x, &y);
+#endif
 	if (x == -1 || y == -1) {
 		return PASS;
 	} else {
