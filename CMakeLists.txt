@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.0)
 project(BeitaGo)
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-std=c++11")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+elseif(MSVC)
+    set(gtest_force_shared_crt ON)
+endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 

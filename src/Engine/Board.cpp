@@ -50,6 +50,10 @@ namespace BeitaGo {
 			ClearPossibleTiles(position + Grid2(0, 1));
 			ClearPossibleTiles(position + Grid2(-1, 0));
 			ClearPossibleTiles(position + Grid2(0, -1));
+			// If none of the other tiles were removed, this move could've been a suicide play,
+			// so remove this group if it has zero liberties. It should only have zero liberties
+			// if any of the other groups were not removed.
+			ClearPossibleTiles(position);
 		} else {
 			std::stringstream s;
 			s << "Board tried to place a " << (color == Color::Black ? "BLACK" : "WHITE") << " piece at (" << position.X() << ", " << position.Y() << ") but it is invalid. Your AI or UI should check IsMoveValid() is true before calling PlacePiece() or ActDecision()!";
