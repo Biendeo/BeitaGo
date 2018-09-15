@@ -1,7 +1,7 @@
 import sys
 from engine.board import Board
 from engine.constants import Color, PASS
-from engine.dumbaiplayer import DumbAIPlayer
+from engine.deeplearningaiplayer import DeepLearningAIPlayer
 from engine.engine import Engine
 from engine.grid2 import Grid2
 from engine.humanplayer import HumanPlayer
@@ -12,7 +12,7 @@ def main() -> None:
 
 	e = Engine()
 	human = HumanPlayer(e, Color.BLACK)
-	ai = DumbAIPlayer(e, Color.WHITE)
+	ai = DeepLearningAIPlayer(e, Color.WHITE)
 	e.new_game(Grid2(9, 9), human, ai)
 
 	print_board(e.get_board())

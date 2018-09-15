@@ -10,6 +10,7 @@ class Board:
 		self._tiles = [[Color.NONE for x in range(dimensions.x())] for y in range(dimensions.y())]
 		self._whoseTurn = Color.BLACK
 		self._turnCount = 1
+		self._komi = 6.5
 
 	def get_dimensions(self) -> Grid2:
 		return copy.copy(self._dimensions)
@@ -25,6 +26,12 @@ class Board:
 
 	def is_game_over(self) -> bool:
 		return False
+
+	def get_komi(self) -> float:
+		return self._komi
+
+	def set_komi(self, komi: float) -> None:
+		self._komi = komi
 
 	def place_piece(self, position: Grid2, color: Color) -> None:
 		if self.is_move_valid(position, color):
@@ -117,9 +124,34 @@ class Board:
 		self._turnCount += 1
 		self._whoseTurn = Color.WHITE if self._whoseTurn == Color.BLACK else Color.BLACK
 
+	def get_valid_moves(self, color: Color) -> [Grid2]:
+		v = list()
+		for y in range(self.get_dimensions().y()):
+			for x in range(self.get_dimensions().x()):
+				if self.is_move_valid(Grid2(x, y), color):
+					v.append(Grid2(x, y))
+
+		return v
+
+	def score(self) -> float:
+		return self.score_area()
+
+	def score_area(self) -> float:
+		white_tiles = 0
+		black_tiles = 0
+		for y in range(self.get_dimensions().y()):
+			for x in range(self.get_dimensions().x()):
+				if self.get_tile(Grid2(x, y)) == Color.WHITE:
+					white_tiles += 1
+				elif self.get_tile(Grid2(x, y)) == Color.BLACK:
+					black_tiles += 1
+
+		return white_tiles - black_tiles + self.get_komi()
+
 	def __clear_possible_tiles__(self, position: Grid2) -> None:
 		if self.is_within_board(position):
 			group = self.get_group(position)
 			if self.get_group_liberties(group) == 0:
 				for space in group:
 					self._tiles[space.x()][space.y()] = Color.NONE
+

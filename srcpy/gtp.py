@@ -3,7 +3,7 @@ from enum import Enum
 import sys
 from typing import TypeVar
 from engine.constants import Color
-from engine.dumbaiplayer import DumbAIPlayer
+from engine.deeplearningaiplayer import DeepLearningAIPlayer
 from engine.engine import Engine
 from engine.grid2 import Grid2
 
@@ -199,7 +199,7 @@ class GTPEngine:
 		self.VERSION = "0.0.2"
 		self.MAX_SIZE = 25
 
-		self._engine.new_game(Grid2(19, 19), DumbAIPlayer(self._engine, Color.BLACK), DumbAIPlayer(self._engine, Color.WHITE))
+		self._engine.new_game(Grid2(19, 19), DeepLearningAIPlayer(self._engine, Color.BLACK), DeepLearningAIPlayer(self._engine, Color.WHITE))
 
 	def start(self) -> None:
 		self._exiting = False
@@ -304,7 +304,7 @@ class GTPEngine:
 				if size > self.MAX_SIZE:
 					self.print_failure_response(id, "unacceptable size")
 				else:
-					self._engine.new_game(Grid2(size, size), DumbAIPlayer(self._engine, Color.BLACK), DumbAIPlayer(self._engine, Color.WHITE))
+					self._engine.new_game(Grid2(size, size), DeepLearningAIPlayer(self._engine, Color.BLACK), DeepLearningAIPlayer(self._engine, Color.WHITE))
 					self.print_success_response(id, "")
 			except:
 				self.print_failure_response(id, "syntax error")
@@ -312,7 +312,7 @@ class GTPEngine:
 			self.print_failure_response(id, "syntax error")
 
 	def clear_board(self, id: int, arguments: [str]) -> None:
-		self._engine.new_game(Grid2(self._engine.get_board().get_dimensions().x(), self._engine.get_board().get_dimensions().y()), DumbAIPlayer(self._engine, Color.BLACK), DumbAIPlayer(self._engine, Color.WHITE))
+		self._engine.new_game(Grid2(self._engine.get_board().get_dimensions().x(), self._engine.get_board().get_dimensions().y()), DeepLearningAIPlayer(self._engine, Color.BLACK), DeepLearningAIPlayer(self._engine, Color.WHITE))
 		self.print_success_response(id, "")
 
 	def komi(self, id: int, arguments: [str]) -> None:
@@ -320,6 +320,7 @@ class GTPEngine:
 			try:
 				komi = float(arguments[0])
 				# Something...implement this in the engine!
+				self._engine.get_board().set_komi(komi)
 				self.print_success_response(id, "")
 			except:
 				self.print_failure_response(id, "syntax error")
