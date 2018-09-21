@@ -247,6 +247,7 @@ namespace BeitaGo {
 		if (!IsWithinBoard(position)) {
 			return;
 		}
+		//! This is the biggest sink to computation time; can this be faster?
 		std::vector<Grid2> group = GetGroup(position);
 		if (GetGroupLiberties(group) == 0) {
 			for (const Grid2& space : group) {
