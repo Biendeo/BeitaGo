@@ -23,6 +23,7 @@ namespace BeitaGo {
 				for (int i = 0; i < children.size(); ++i) {
 					children[i] = nullptr;
 				}
+				ComputeDepth();
 			} else {
 				throw std::invalid_argument("DeepLearningAIPlayer given a board of an unsupported size " + std::to_string(currentBoard.GetDimensions().X()));
 			}
@@ -62,7 +63,7 @@ namespace BeitaGo {
 
 			// Randomly play this board for a while.
 			Board b = children[childrenIndex]->currentBoard;
-			for (int i = 0; i < 200; ++i) {
+			for (int i = 0; i < 100; ++i) {
 				try {
 					if (b.IsGameOver()) {
 						break;
@@ -78,27 +79,19 @@ namespace BeitaGo {
 			}
 
 			lock.lock();
-			/*
-			for (int y = b.GetDimensions().Y() - 1; y >= 0; --y) {
-				std::cout << " ";
-				for (int x = 0; x < b.GetDimensions().X(); ++x) {
-					Color color = b.GetTile(BeitaGo::Grid2(x, y));
-					if (color == Color::Black) {
-						std::cout << "X";
-					} else if (color == Color::White) {
-						std::cout << "O";
-					} else {
-						std::cout << ".";
-					}
-				}
-				std::cout << "\n";
-			}
-			*/
 			double score = b.Score();
 			Color whoseTurn = children[childrenIndex]->currentBoard.GetWhoseTurn();
 			children[childrenIndex]->UpdateScore((score > 0.0 && whoseTurn == Color::White) || (score < 0.0 && whoseTurn == Color::Black));
-			//std::cout << totalWins << " / " << totalSimulations << "(" << totalWins / static_cast<double>(totalSimulations) * 100.0 << "%)\n";
+			std::cout << totalWins << " / " << totalSimulations << "(" << totalWins / static_cast<double>(totalSimulations) * 100.0 << "%)\n";
 			lock.unlock();
+		}
+
+		/**
+		 * Returns the depth of this node.
+		 * @return
+		 */
+		int GetDepth() const {
+			return depth;
 		}
 
 		/**
@@ -149,12 +142,8 @@ namespace BeitaGo {
 		int totalWins;
 		int totalSimulations;
 		std::mutex lock;
+		int depth; // This can be easily computed, but I've cached it in the constructor.
 
-
-		/**
-		 * Returns the expected
-		 * @return
-		 */
 		constexpr int PassIndex() const {
 			return DeepLearningAIPlayer::EXPECTED_BOARD_SIZE * DeepLearningAIPlayer::EXPECTED_BOARD_SIZE;
 		}
@@ -166,6 +155,14 @@ namespace BeitaGo {
 			}
 			if (parent != nullptr) {
 				parent->UpdateScore(!win);
+			}
+		}
+
+		void ComputeDepth() {
+			if (parent == nullptr) {
+				depth = 0;
+			} else {
+				depth = parent->GetDepth() + 1;
 			}
 		}
 	};
@@ -181,7 +178,7 @@ namespace BeitaGo {
 	Grid2 DeepLearningAIPlayer::MakeDecision() const {
 		TreeState start(GetEngine().GetBoard());
 		//TODO: This value can be tweaked, probably played around time.
-		start.RunSimulations(1000);
+		start.RunSimulations(2000);
 		return start.GetMostLikelyMove();
 	}
 
