@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "Constants.h"
 #include "Engine.h"
 
 class GTPEngine {
@@ -48,12 +49,24 @@ class GTPEngine {
 
 	struct GTPVertex {
 		public:
-		GTPVertex(const std::string& str) : val(LetterToColumn(str[0]), std::stoi(str.substr(1)) - 1) {}
+		GTPVertex(const std::string& str){
+			std::string possiblePass = str.substr(0, 4);
+			std::transform(possiblePass.begin(), possiblePass.end(), possiblePass.begin(), ::tolower);
+			if (possiblePass == "pass") {
+				val = BeitaGo::PASS;
+			} else {
+				val = BeitaGo::Grid2(LetterToColumn(str[0]), std::stoi(str.substr(1)) - 1);
+			}
+		}
 		GTPVertex(const BeitaGo::Grid2& grid) : val(grid) {}
 
 		operator BeitaGo::Grid2() { return val; }
 		operator std::string() {
-			return ColumnToLetter(val.X()) + std::to_string(val.Y() + 1);
+			if (val != BeitaGo::PASS) {
+				return ColumnToLetter(val.X()) + std::to_string(val.Y() + 1);
+			} else {
+				return "PASS";
+			}
 		}
 		BeitaGo::Grid2& operator=(BeitaGo::Grid2& o) { return val = o; }
 
@@ -135,6 +148,8 @@ class GTPEngine {
 	void Komi(int id, const std::vector<std::string>& arguments);
 	void Play(int id, const std::vector<std::string>& arguments);
 	void GenMove(int id, const std::vector<std::string>& arguments);
+	void Undo(int id, const std::vector<std::string>& arguments);
+	void FinalScore(int id, const std::vector<std::string>& arguments);
 	void ShowBoard(int id, const std::vector<std::string>& arguments) const;
 
 	void PrintSuccessResponse(int id, const std::string& message) const;

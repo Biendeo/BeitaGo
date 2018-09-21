@@ -1,6 +1,7 @@
 #include "GTPEngine.h"
 
 #include <array>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -95,6 +96,12 @@ void GTPEngine::HandleInput(const std::string& input) {
 				case CommandType::GenMove:
 					GenMove(id, arguments);
 					break;
+				case CommandType::Undo:
+					Undo(id, arguments);
+					break;
+				case CommandType::FinalScore:
+					FinalScore(id, arguments);
+					break;
 				case CommandType::ShowBoard:
 					ShowBoard(id, arguments);
 					break;
@@ -148,6 +155,8 @@ void GTPEngine::PrintListCommands(int id, const std::vector<std::string>& argume
 	ss << "komi" << "\n";
 	ss << "play" << "\n";
 	ss << "genmove" << "\n";
+	ss << "undo" << "\n";
+	ss << "score" << "\n";
 	ss << "showboard";
 	PrintSuccessResponse(id, ss.str());
 }
@@ -240,6 +249,30 @@ void GTPEngine::GenMove(int id, const std::vector<std::string>& arguments) {
 		}
 	} else {
 		PrintFailureResponse(id, "syntax error");
+	}
+}
+
+void GTPEngine::Undo(int id, const std::vector<std::string>& arguments) {
+	if (_engine.GetBoard().GetTurnCount() > 1) {
+		_engine.GetBoard().RewindBoard(1);
+		PrintSuccessResponse(id, "");
+	} else {
+		PrintFailureResponse(id, "cannot undo");
+	}
+}
+
+void GTPEngine::FinalScore(int id, const std::vector<std::string>& arguments) {
+	double score = _engine.GetBoard().Score();
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(1);
+	if (score == 0.0) {
+		PrintSuccessResponse(id, "0");
+	} else if (score > 0.0) {
+		ss << "W+" << score;
+		PrintSuccessResponse(id, ss.str());
+	} else {
+		ss << "B+" << -score;
+		PrintSuccessResponse(id, ss.str());
 	}
 }
 

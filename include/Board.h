@@ -134,6 +134,17 @@ namespace BeitaGo {
 		 */
 		void NextTurn();
 
+		/**
+		 * Moves the board back the set number of plays.
+		 */
+		void RewindBoard(int numTurns);
+
+		/**
+		 * Returns a board that has been rewinded a certain number of moves.
+		 * This is identical to copying the board and rewinding it.
+		 */
+		Board GetPreviousState(int numTurns) const;
+
 		private:
 		/**
 		 * After placing a move, this clears any possible tiles that can be removed.

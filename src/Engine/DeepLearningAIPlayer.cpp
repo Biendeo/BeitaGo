@@ -44,7 +44,7 @@ namespace BeitaGo {
 			auto validMoves = currentBoard.GetValidMoves(currentBoard.GetWhoseTurn());
 
 			std::default_random_engine randomEngine;
-			randomEngine.seed(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+			randomEngine.seed(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 			std::uniform_int_distribution<int> validMoveDistribution(0, static_cast<int>(validMoves.size()) - 1);
 			int validMoveIndex = validMoveDistribution(randomEngine);
 
@@ -82,7 +82,7 @@ namespace BeitaGo {
 			double score = b.Score();
 			Color whoseTurn = children[childrenIndex]->currentBoard.GetWhoseTurn();
 			children[childrenIndex]->UpdateScore((score > 0.0 && whoseTurn == Color::White) || (score < 0.0 && whoseTurn == Color::Black));
-			std::cout << totalWins << " / " << totalSimulations << "(" << totalWins / static_cast<double>(totalSimulations) * 100.0 << "%)\n";
+			//std::cout << totalWins << " / " << totalSimulations << "(" << totalWins / static_cast<double>(totalSimulations) * 100.0 << "%)\n";
 			lock.unlock();
 		}
 
@@ -178,7 +178,7 @@ namespace BeitaGo {
 	Grid2 DeepLearningAIPlayer::MakeDecision() const {
 		TreeState start(GetEngine().GetBoard());
 		//TODO: This value can be tweaked, probably played around time.
-		start.RunSimulations(2000);
+		start.RunSimulations(200);
 		return start.GetMostLikelyMove();
 	}
 
@@ -188,19 +188,22 @@ namespace BeitaGo {
 		for (int i = 0; i < HISTORY_USED + 1; ++i) {
 			for (int y = 0; y < GetEngine().GetBoard().GetDimensions().Y(); ++y) {
 				for (int x = 0; x < GetEngine().GetBoard().GetDimensions().X(); ++x) {
-					switch (i) {
-						case 0:
+					if (i == HISTORY_USED) {
+						inputVector[index] = GetEngine().GetBoard().GetWhoseTurn() == Color::Black;
+					} else if (i % 2 == 0) {
+						if (i == 0) {
 							inputVector[index] = GetEngine().GetBoard().GetTile(Grid2(x, y)) == Color::Black;
-							break;
-						case 1:
+						} else {
+							Board historyBoard = GetEngine().GetBoard().GetPreviousState(i / 2);
+							inputVector[index] = historyBoard.GetTile(Grid2(x, y)) == Color::Black;
+						}
+					} else {
+						if (i == 0) {
 							inputVector[index] = GetEngine().GetBoard().GetTile(Grid2(x, y)) == Color::White;
-							break;
-						case 2:
-							inputVector[index] = GetEngine().GetBoard().GetWhoseTurn() == Color::Black;
-							break;
-						default:
-							// I haven't handled history yet!
-							break;
+						} else {
+							Board historyBoard = GetEngine().GetBoard().GetPreviousState(i / 2);
+							inputVector[index] = historyBoard.GetTile(Grid2(x, y)) == Color::White;
+						}
 					}
 					++index;
 				}

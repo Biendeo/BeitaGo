@@ -218,6 +218,31 @@ namespace BeitaGo {
 		_whoseTurn = _whoseTurn == Color::Black ? Color::White : Color::Black;
 	}
 
+	void Board::RewindBoard(int numTurns) {
+		Board newBoard = GetPreviousState(numTurns);
+		this->_tiles = newBoard._tiles;
+		this->_history = newBoard._history;
+		this->_turnCount = newBoard._turnCount;
+		this->_whoseTurn = _whoseTurn;
+	}
+
+	Board Board::GetPreviousState(int numTurns) const {
+		// For constant rewinds, this may not actually be efficient and the history should store
+		// the board placement instead.
+		if (numTurns <= 0) {
+			return *this;
+		}
+		Board newBoard(GetDimensions());
+		if (numTurns < _history.size()) {
+
+			for (auto it = _history.begin(); it != _history.begin() + (_history.size() - numTurns); ++it) {
+				newBoard.PlacePiece(it->GetPosition(), it->GetColor());
+				newBoard.NextTurn();
+			}
+		}
+		return newBoard;
+	}
+
 	void Board::ClearPossibleTiles(const Grid2& position) {
 		if (!IsWithinBoard(position)) {
 			return;
