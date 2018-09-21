@@ -25,18 +25,6 @@ namespace BeitaGo {
 	}
 
 	std::vector<Grid2> Player::GetValidMoves() const {
-		//? While this may not scale that well, I think it'll be satisfactory for even the larger
-		//? board sizes people will use.
-		std::vector<Grid2> v;
-
-		for (int y = 0; y < GetEngine().GetBoard().GetDimensions().Y(); ++y) {
-			for (int x = 0; x < GetEngine().GetBoard().GetDimensions().X(); ++x) {
-				if (GetEngine().GetBoard().IsMoveValid(Grid2(x, y), GetColor())) {
-					v.emplace_back(x, y);
-				}
-			}
-		}
-
-		return v;
+		return GetEngine().GetBoard().GetValidMoves(GetColor());
 	}
 }

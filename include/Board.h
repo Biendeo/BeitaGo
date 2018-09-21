@@ -76,10 +76,42 @@ namespace BeitaGo {
 		bool IsWithinBoard(const Grid2& position) const;
 
 		/**
-		 * Returns how many liberties a tile has, or -1 if the tile is None or off the board.
-		 * @param position
+		 * Returns the moves that a specific color can place on this turn.
+		 * @param color
 		 * @return
 		 */
+		std::vector<Grid2> GetValidMoves(const Color& color) const;
+
+		/**
+		 * Gets the current komi for the white player.
+		 * @return
+		 */
+		double GetKomi() const;
+
+		/**
+		 * Sets the current komi for the white player for this board.
+		 * @param komi
+		 * @return
+		 */
+		void SetKomi(double komi);
+
+		/**
+		 * Gets the current score for this board. Positive is in favor of white, negative is in favor of black.
+		 * @return
+		 */
+		double Score() const;
+
+		/**
+		 * Gets the current score using the area method. Positive is in favor of white, negative is in favor of black.
+		 * @return
+		 */
+		double ScoreArea() const;
+
+			/**
+			 * Returns how many liberties a tile has, or -1 if the tile is None or off the board.
+			 * @param position
+			 * @return
+			 */
 		int GetLiberties(const Grid2& position) const;
 
 		/**
@@ -114,6 +146,7 @@ namespace BeitaGo {
 
 		Color _whoseTurn;
 		int _turnCount;
+		double _komi;
 	};
 }
 

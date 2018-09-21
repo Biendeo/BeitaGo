@@ -5,9 +5,10 @@
 #include <sstream>
 
 #include "DumbAIPlayer.h"
+#include "DeepLearningAIPlayer.h"
 
 GTPEngine::GTPEngine() {
-	_engine.NewGame(BeitaGo::Grid2(19, 19), new BeitaGo::DumbAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DumbAIPlayer(_engine, BeitaGo::Color::White));
+	_engine.NewGame(BeitaGo::Grid2(19, 19), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::White));
 }
 
 GTPEngine::~GTPEngine() {
@@ -38,16 +39,6 @@ void GTPEngine::HandleInput(const std::string& input) {
 	// Clean the input and tokenize it.
 	std::string cleanedInput = PreprocessInput(input);
 	std::vector<std::string> tokenizedInput = Tokenize(cleanedInput);
-	/*
-	std::cout << "[";
-	for (int i = 0; i < tokenizedInput.size(); ++i) {
-		std::cout << tokenizedInput[i];
-		if (i != tokenizedInput.size() - 1) {
-			std::cout << ", ";
-		}
-	}
-	std::cout << "]\n";
-	*/
 
 	// If the command starts with an int, that'll be an ID.
 	if (tokenizedInput.size() >= 1) {
@@ -168,7 +159,7 @@ void GTPEngine::BoardSize(int id, const std::vector<std::string>& arguments) {
 			if (size > MAX_SIZE) {
 				PrintFailureResponse(id, "unacceptable size");
 			} else {
-				_engine.NewGame(BeitaGo::Grid2(size, size), new BeitaGo::DumbAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DumbAIPlayer(_engine, BeitaGo::Color::White));
+				_engine.NewGame(BeitaGo::Grid2(size, size), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::White));
 				PrintSuccessResponse(id, "");
 			}
 		} catch (std::exception& e) {
@@ -182,15 +173,15 @@ void GTPEngine::BoardSize(int id, const std::vector<std::string>& arguments) {
 }
 
 void GTPEngine::ClearBoard(int id, const std::vector<std::string>& arguments) {
-	_engine.NewGame(BeitaGo::Grid2(_engine.GetBoard().GetDimensions().X(), _engine.GetBoard().GetDimensions().Y()), new BeitaGo::DumbAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DumbAIPlayer(_engine, BeitaGo::Color::White));
+	_engine.NewGame(BeitaGo::Grid2(_engine.GetBoard().GetDimensions().X(), _engine.GetBoard().GetDimensions().Y()), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::White));
 	PrintSuccessResponse(id, "");
 }
 
 void GTPEngine::Komi(int id, const std::vector<std::string>& arguments) {
 	if (arguments.size() >= 1) {
 		try {
-			float komi = std::stof(arguments[0]);
-			// Something...implement this in the engine!
+			double komi = std::stod(arguments[0]);
+			_engine.GetBoard().SetKomi(komi);
 			PrintSuccessResponse(id, "");
 		} catch (std::exception& e) {
 			(void)e;
@@ -234,12 +225,12 @@ void GTPEngine::GenMove(int id, const std::vector<std::string>& arguments) {
 		try {
 			GTPColor color(arguments[0]);
 			if (static_cast<BeitaGo::Color>(color) == BeitaGo::Color::Black) {
-				GTPVertex move(static_cast<BeitaGo::AIPlayer&>(_engine.GetPlayer1()).MakeDecision());
+				GTPVertex move(dynamic_cast<BeitaGo::AIPlayer&>(_engine.GetPlayer1()).MakeDecision());
 				_engine.GetPlayer1().ActDecision(move);
 				PrintSuccessResponse(id, move);
 			} else {
 				// Assume it to be white.
-				GTPVertex move(static_cast<BeitaGo::AIPlayer&>(_engine.GetPlayer2()).MakeDecision());
+				GTPVertex move(dynamic_cast<BeitaGo::AIPlayer&>(_engine.GetPlayer2()).MakeDecision());
 				_engine.GetPlayer2().ActDecision(move);
 				PrintSuccessResponse(id, move);
 			}
@@ -340,7 +331,7 @@ GTPEngine::CommandType GTPEngine::StrToCommandType(const std::string& str) {
 	} else if (str == "list_commands") {
 		return CommandType::ListCommands;
 	} else if (str == "quit") {
-		return CommandType::Name;
+		return CommandType::Quit;
 	} else if (str == "boardsize") {
 		return CommandType::BoardSize;
 	} else if (str == "clear_board") {
@@ -413,7 +404,7 @@ std::vector<std::string> GTPEngine::Tokenize(const std::string& str) {
 
 char GTPEngine::ColumnToLetter(int col)  {
 	if (col >= 0 && col <= 24) {
-		char c = col + 'A';
+		char c = static_cast<char>(col + 'A');
 		if (c >= 'I') {
 			++c;
 		}

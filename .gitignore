@@ -3,3 +3,5 @@
 bin/
 CMakeOutput/
 CMakeLists.txt.user
+/build
+/sgf

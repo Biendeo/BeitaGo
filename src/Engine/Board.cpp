@@ -16,6 +16,7 @@ namespace BeitaGo {
 		}
 		_whoseTurn = Color::Black;
 		_turnCount = 1;
+		_komi = 6.5;
 	}
 
 	Grid2 Board::GetDimensions() const {
@@ -41,19 +42,23 @@ namespace BeitaGo {
 
 	void Board::PlacePiece(const Grid2& position, Color color) {
 		if (IsMoveValid(position, color)) {
-			_tiles[position.X()][position.Y()] = color;
+			if (position != PASS) {
+				_tiles[position.X()][position.Y()] = color;
+			}
 			_history.emplace_back(position, color);
 			//TODO: Double check if you can solve this by just checking the neighbouring tiles.
 			// When placing a piece, only the neighbouring tiles' liberties are changed, so you
 			// only need to check whether those should be removed.
-			ClearPossibleTiles(position + Grid2(1, 0));
-			ClearPossibleTiles(position + Grid2(0, 1));
-			ClearPossibleTiles(position + Grid2(-1, 0));
-			ClearPossibleTiles(position + Grid2(0, -1));
-			// If none of the other tiles were removed, this move could've been a suicide play,
-			// so remove this group if it has zero liberties. It should only have zero liberties
-			// if any of the other groups were not removed.
-			ClearPossibleTiles(position);
+			if (position != PASS) {
+				ClearPossibleTiles(position + Grid2(1, 0));
+				ClearPossibleTiles(position + Grid2(0, 1));
+				ClearPossibleTiles(position + Grid2(-1, 0));
+				ClearPossibleTiles(position + Grid2(0, -1));
+				// If none of the other tiles were removed, this move could've been a suicide play,
+				// so remove this group if it has zero liberties. It should only have zero liberties
+				// if any of the other groups were not removed.
+				ClearPossibleTiles(position);
+			}
 		} else {
 			std::stringstream s;
 			s << "Board tried to place a " << (color == Color::Black ? "BLACK" : "WHITE") << " piece at (" << position.X() << ", " << position.Y() << ") but it is invalid. Your AI or UI should check IsMoveValid() is true before calling PlacePiece() or ActDecision()!";
@@ -62,7 +67,7 @@ namespace BeitaGo {
 	}
 
 	bool Board::IsMoveValid(const Grid2& position, Color color) const {
-		if (IsWithinBoard(position) && GetTile(position) == Color::None) {
+		if (position == PASS || (IsWithinBoard(position) && GetTile(position) == Color::None)) {
 			//TODO: Use greater scrutiny here.
 			return true;
 		} else {
@@ -72,6 +77,52 @@ namespace BeitaGo {
 
 	bool Board::IsWithinBoard(const Grid2& position) const {
 		return position.X() >= 0 && position.X() < GetDimensions().X() && position.Y() >= 0 && position.Y() < GetDimensions().Y();
+	}
+
+	std::vector<Grid2> Board::GetValidMoves(const Color& color) const {
+		//? While this may not scale that well, I think it'll be satisfactory for even the larger
+		//? board sizes people will use.
+		std::vector<Grid2> v;
+
+		for (int y = 0; y < GetDimensions().Y(); ++y) {
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				if (IsMoveValid(Grid2(x, y), color)) {
+					v.emplace_back(x, y);
+				}
+			}
+		}
+
+		v.push_back(PASS);
+
+		return v;
+	}
+
+	double Board::GetKomi() const {
+		return _komi;
+	}
+
+	void Board::SetKomi(double komi) {
+		_komi = komi;
+	}
+
+	double Board::Score() const {
+		return ScoreArea();
+	}
+
+	double Board::ScoreArea() const {
+		//TODO: This is not accurate!
+		int whiteTiles = 0;
+		int blackTiles = 0;
+		for (int y = 0; y < GetDimensions().Y(); ++y) {
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				if (GetTile(Grid2(x, y)) == Color::White) {
+					++whiteTiles;
+				} else if (GetTile(Grid2(x, y)) == Color::Black) {
+					++blackTiles;
+				}
+			}
+		}
+		return whiteTiles - blackTiles + GetKomi();
 	}
 
 	int Board::GetLiberties(const Grid2& position) const {
