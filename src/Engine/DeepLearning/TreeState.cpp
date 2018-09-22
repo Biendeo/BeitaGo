@@ -33,30 +33,28 @@ namespace BeitaGo {
 		std::uniform_int_distribution<int> validMoveDistribution(0, static_cast<int>(_validMoves.size()) - 1);
 		int validMoveIndex = validMoveDistribution(randomEngine);
 
-		_lock.lock();
+		//TODO: Figure out multithreading capabilities now.
 		TreeState* childNode = CheckAndCreateChild(_validMoves[validMoveIndex]);
-		_lock.unlock();
 
 		// Randomly play this board for a while.
-		Board b = childNode->_currentBoard;
 		for (int i = 0; i < 100; ++i) {
-			if (b.IsGameOver()) {
+			if (childNode->_currentBoard.IsGameOver()) {
 				break;
 			}
-			auto simValidMoves = b.GetValidMoves(b.GetWhoseTurn());
+			auto simValidMoves = childNode->_validMoves;
 			std::uniform_int_distribution<int> simValidMoveDistribution(0, static_cast<int>(simValidMoves.size()) - 1);
 			int simValidMoveIndex = simValidMoveDistribution(randomEngine);
-			b.PlacePiece(simValidMoves[simValidMoveIndex], b.GetWhoseTurn());
-			b.NextTurn();
+			childNode = childNode->CheckAndCreateChild(simValidMoves[simValidMoveIndex]);
 		}
 
-		_lock.lock();
-		double score = b.Score();
+		double score = childNode->_currentBoard.Score();
 		Color whoseTurn = childNode->_currentBoard.GetWhoseTurn();
 		childNode->UpdateScore((score > 0.0 && whoseTurn == Color::White) || (score < 0.0 && whoseTurn == Color::Black));
+		_lock.lock();
 		std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 		_lock.unlock();
 	}
+
 	int TreeState::GetDepth() const {
 		return _depth;
 	}
@@ -138,14 +136,16 @@ namespace BeitaGo {
 	}
 
 	bool TreeState::IsFullyExpanded() const {
-		return GetChildrenExpanded() == _validMoves.size();
+		return GetChildrenExpanded() == _validMoves.size() || _currentBoard.IsGameOver();
 	}
 
 	void TreeState::UpdateScore(bool win) {
+		_lock.lock();
 		++_totalSimulations;
 		if (win) {
 			++_totalWins;
 		}
+		_lock.unlock();
 		if (_parent != nullptr) {
 			_parent->UpdateScore(!win);
 		}
@@ -164,6 +164,7 @@ namespace BeitaGo {
 	}
 
 	TreeState* TreeState::CheckAndCreateChild(int index) {
+		_lock.lock();
 		if (_children[index] == nullptr) {
 			Board nextBoard = _currentBoard;
 			Grid2 nextMove = IndexToGrid2(index);
@@ -172,6 +173,7 @@ namespace BeitaGo {
 			_children[index] = new TreeState(nextBoard, this, nextMove);
 			++_childrenExpanded;
 		}
+		_lock.unlock();
 		return _children[index];
 	}
 }

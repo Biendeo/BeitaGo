@@ -37,7 +37,7 @@ namespace BeitaGo {
 	}
 
 	bool Board::IsGameOver() const {
-		return false;
+		return _history.size() > 2 && (_history.end() - 2)->GetPosition() == PASS && (_history.end() - 1)->GetPosition() == PASS;
 	}
 
 	void Board::PlacePiece(const Grid2& position, Color color) {

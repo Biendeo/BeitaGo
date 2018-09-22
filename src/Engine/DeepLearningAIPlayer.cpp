@@ -26,7 +26,7 @@ namespace BeitaGo {
 		}
 		currentState = rootState->FindCurrentState(GetEngine().GetBoard().GetHistory());
 		//TODO: This value can be tweaked, probably played around time.
-		currentState->RunSimulations(2000);
+		currentState->RunSimulations(1000);
 		return currentState->GetMostLikelyMove();
 	}
 
