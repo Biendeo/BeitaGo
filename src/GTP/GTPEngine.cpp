@@ -244,8 +244,7 @@ void GTPEngine::GenMove(int id, const std::vector<std::string>& arguments) {
 				PrintSuccessResponse(id, move);
 			}
 		} catch (std::exception& e) {
-			(void)e;
-			PrintFailureResponse(id, "syntax error");
+			PrintFailureResponse(id, e.what());
 		}
 	} else {
 		PrintFailureResponse(id, "syntax error");

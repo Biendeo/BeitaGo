@@ -1,33 +1,33 @@
 #include "DeepLearningAIPlayer.h"
 
-#include <array>
-#include <chrono>
-#include <exception>
-#include <iostream>
-#include <mutex>
-#include <random>
-#include <string>
-#include <thread>
-
-
 #include "Board.h"
 #include "DeepLearning/TreeState.h"
 #include "Engine.h"
 
+
+#include <iostream>
+
 namespace BeitaGo {
 	DeepLearningAIPlayer::DeepLearningAIPlayer(BeitaGo::Engine& engine, BeitaGo::Color color) : AIPlayer(engine, color) {
-
+		rootState = nullptr;
+		currentState = nullptr;
 	}
 
 	DeepLearningAIPlayer::~DeepLearningAIPlayer() {
-
+		if (rootState != nullptr) {
+			delete rootState;
+		}
 	}
 
 	Grid2 DeepLearningAIPlayer::MakeDecision() const {
-		TreeState start(GetEngine().GetBoard());
+		if (rootState == nullptr) {
+			rootState = new TreeState(Board(GetEngine().GetBoard().GetDimensions()));
+			currentState = rootState;
+		}
+		currentState = rootState->FindCurrentState(GetEngine().GetBoard().GetHistory());
 		//TODO: This value can be tweaked, probably played around time.
-		start.RunSimulations(200);
-		return start.GetMostLikelyMove();
+		currentState->RunSimulations(2000);
+		return currentState->GetMostLikelyMove();
 	}
 
 	std::array<bool, DeepLearningAIPlayer::INPUT_VECTOR_SIZE> DeepLearningAIPlayer::BoardToInputVector() const {

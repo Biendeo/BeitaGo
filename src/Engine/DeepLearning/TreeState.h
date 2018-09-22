@@ -10,7 +10,12 @@
 namespace BeitaGo {
 	class TreeState {
 		public:
-		TreeState(const Board& currentBoard, TreeState* parent = nullptr, const Grid2& lastMove = PASS);
+		TreeState(const Board& _currentBoard, TreeState* parent = nullptr, const Grid2& lastMove = PASS);
+
+		/**
+		 * Destroys this node and every child node from it. To delete the whole tree, delete the
+		 * parent node.
+		 */
 		~TreeState();
 
 		/**
@@ -37,17 +42,25 @@ namespace BeitaGo {
 		 */
 		Grid2 GetMostLikelyMove() const;
 
+		/**
+		 * Navigates the tree to find the node that corresponds to the given history. If the node
+		 * or any nodes along the path don't exist, they are created. If this is not the root node,
+		 * it will navigate to the root first.
+		 */
+		TreeState* FindCurrentState(const std::vector<MoveHistoryEntry>& history);
+
 		private:
-		Board currentBoard;
-		TreeState* parent;
-		Grid2 lastMove;
-		std::array<TreeState*, DeepLearningAIPlayer::EXPECTED_BOARD_SIZE * DeepLearningAIPlayer::EXPECTED_BOARD_SIZE + 1> children;
-		int totalWins;
-		int totalSimulations;
-		std::mutex lock;
-		int depth; // This can be easily computed, but I've cached it in the constructor.
+		Board _currentBoard;
+		TreeState* _parent;
+		Grid2 _lastMove;
+		std::array<TreeState*, DeepLearningAIPlayer::EXPECTED_BOARD_SIZE * DeepLearningAIPlayer::EXPECTED_BOARD_SIZE + 1> _children;
+		int _totalWins;
+		int _totalSimulations;
+		std::mutex _lock;
+		int _depth; // This can be easily computed, but I've cached it in the constructor.
 
 		constexpr int PassIndex() const;
+		int Grid2ToIndex(const Grid2& g) const;
 		void UpdateScore(bool win);
 		void ComputeDepth();
 	};

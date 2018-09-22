@@ -243,6 +243,10 @@ namespace BeitaGo {
 		return newBoard;
 	}
 
+	std::vector<MoveHistoryEntry> Board::GetHistory() const {
+		return _history;
+	}
+
 	void Board::ClearPossibleTiles(const Grid2& position) {
 		if (!IsWithinBoard(position)) {
 			return;

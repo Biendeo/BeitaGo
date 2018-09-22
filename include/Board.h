@@ -145,6 +145,11 @@ namespace BeitaGo {
 		 */
 		Board GetPreviousState(int numTurns) const;
 
+		/**
+		 * Returns the history of all the moves played by the game.
+		 */
+		std::vector<MoveHistoryEntry> GetHistory() const;
+
 		private:
 		/**
 		 * After placing a move, this clears any possible tiles that can be removed.

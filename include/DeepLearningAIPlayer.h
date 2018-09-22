@@ -4,8 +4,9 @@
 
 #include "AIPlayer.h"
 
-
 namespace BeitaGo {
+	class TreeState;
+
 	/**
 	 * Defines an AI player that uses deep learning to compute its decisions.
 	 */
@@ -46,6 +47,8 @@ namespace BeitaGo {
 		std::array<bool, INPUT_VECTOR_SIZE> BoardToInputVector() const;
 
 		private:
+		mutable TreeState* rootState;
+		mutable TreeState* currentState;
 	};
 }
 
