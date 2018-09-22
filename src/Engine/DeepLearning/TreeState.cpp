@@ -9,10 +9,12 @@ namespace BeitaGo {
 		if (_currentBoard.GetDimensions().X() == _currentBoard.GetDimensions().Y() && _currentBoard.GetDimensions().X() == DeepLearningAIPlayer::EXPECTED_BOARD_SIZE) {
 			_totalWins = 0;
 			_totalSimulations = 0;
+			_childrenExpanded = 0;
 			for (int i = 0; i < _children.size(); ++i) {
 				_children[i] = nullptr;
 			}
 			ComputeDepth();
+			_validMoves = _currentBoard.GetValidMoves(_currentBoard.GetWhoseTurn());
 		} else {
 			throw std::invalid_argument("DeepLearningAIPlayer given a board of an unsupported size " + std::to_string(_currentBoard.GetDimensions().X()));
 		}
@@ -26,28 +28,17 @@ namespace BeitaGo {
 	}
 
 	void TreeState::RunSimulation() {
-		auto validMoves = _currentBoard.GetValidMoves(_currentBoard.GetWhoseTurn());
-
 		std::default_random_engine randomEngine;
 		randomEngine.seed(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-		std::uniform_int_distribution<int> validMoveDistribution(0, static_cast<int>(validMoves.size()) - 1);
+		std::uniform_int_distribution<int> validMoveDistribution(0, static_cast<int>(_validMoves.size()) - 1);
 		int validMoveIndex = validMoveDistribution(randomEngine);
 
-		int childrenIndex = PassIndex();
-		if (validMoves[validMoveIndex] != PASS) {
-			childrenIndex = Grid2ToIndex(validMoves[validMoveIndex]);
-		}
-
 		_lock.lock();
-		if (_children[childrenIndex] == nullptr) {
-			_children[childrenIndex] = new TreeState(_currentBoard, this, validMoves[validMoveIndex]);
-			_children[childrenIndex]->_currentBoard.PlacePiece(validMoves[validMoveIndex], _currentBoard.GetWhoseTurn());
-			_children[childrenIndex]->_currentBoard.NextTurn();
-		}
+		TreeState* childNode = CheckAndCreateChild(_validMoves[validMoveIndex]);
 		_lock.unlock();
 
 		// Randomly play this board for a while.
-		Board b = _children[childrenIndex]->_currentBoard;
+		Board b = childNode->_currentBoard;
 		for (int i = 0; i < 100; ++i) {
 			if (b.IsGameOver()) {
 				break;
@@ -61,9 +52,9 @@ namespace BeitaGo {
 
 		_lock.lock();
 		double score = b.Score();
-		Color whoseTurn = _children[childrenIndex]->_currentBoard.GetWhoseTurn();
-		_children[childrenIndex]->UpdateScore((score > 0.0 && whoseTurn == Color::White) || (score < 0.0 && whoseTurn == Color::Black));
-		//std::cout < _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
+		Color whoseTurn = childNode->_currentBoard.GetWhoseTurn();
+		childNode->UpdateScore((score > 0.0 && whoseTurn == Color::White) || (score < 0.0 && whoseTurn == Color::Black));
+		std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 		_lock.unlock();
 	}
 	int TreeState::GetDepth() const {
@@ -116,13 +107,7 @@ namespace BeitaGo {
 				} else {
 					--it;
 				}
-				if (currentState->_children[nextIndex] == nullptr) {
-					Board nextBoard = currentState->_currentBoard;
-					nextBoard.PlacePiece(nextMove, nextBoard.GetWhoseTurn());
-					nextBoard.NextTurn();
-					currentState->_children[nextIndex] = new TreeState(nextBoard, currentState, nextMove);
-				}
-				currentState = currentState->_children[nextIndex];
+				currentState = currentState->CheckAndCreateChild(nextIndex);
 			}
 			return currentState;
 		}
@@ -138,6 +123,22 @@ namespace BeitaGo {
 		} else {
 			return g.Y() * _currentBoard.GetDimensions().X() + g.X();
 		}
+	}
+
+	Grid2 TreeState::IndexToGrid2(int index) const {
+		if (index == PassIndex()) {
+			return PASS;
+		} else {
+			return Grid2(index % _currentBoard.GetDimensions().X(), index / _currentBoard.GetDimensions().X());
+		}
+	}
+
+	int TreeState::GetChildrenExpanded() const {
+		return _childrenExpanded;
+	}
+
+	bool TreeState::IsFullyExpanded() const {
+		return GetChildrenExpanded() == _validMoves.size();
 	}
 
 	void TreeState::UpdateScore(bool win) {
@@ -156,5 +157,21 @@ namespace BeitaGo {
 		} else {
 			_depth = _parent->GetDepth() + 1;
 		}
+	}
+
+	TreeState* TreeState::CheckAndCreateChild(const Grid2& g) {
+		return CheckAndCreateChild(Grid2ToIndex(g));
+	}
+
+	TreeState* TreeState::CheckAndCreateChild(int index) {
+		if (_children[index] == nullptr) {
+			Board nextBoard = _currentBoard;
+			Grid2 nextMove = IndexToGrid2(index);
+			nextBoard.PlacePiece(nextMove, nextBoard.GetWhoseTurn());
+			nextBoard.NextTurn();
+			_children[index] = new TreeState(nextBoard, this, nextMove);
+			++_childrenExpanded;
+		}
+		return _children[index];
 	}
 }

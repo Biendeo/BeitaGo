@@ -2,6 +2,7 @@
 
 #include <array>
 #include <mutex>
+#include <vector>
 
 #include "Board.h"
 #include "DeepLearningAIPlayer.h"
@@ -9,6 +10,9 @@
 
 namespace BeitaGo {
 	class TreeState {
+		// Purely for debugging properties.
+		friend class DeepLearningAIPlayer;
+
 		public:
 		TreeState(const Board& _currentBoard, TreeState* parent = nullptr, const Grid2& lastMove = PASS);
 
@@ -58,10 +62,17 @@ namespace BeitaGo {
 		int _totalSimulations;
 		std::mutex _lock;
 		int _depth; // This can be easily computed, but I've cached it in the constructor.
+		int _childrenExpanded;
+		std::vector<Grid2> _validMoves;
 
 		constexpr int PassIndex() const;
 		int Grid2ToIndex(const Grid2& g) const;
+		Grid2 IndexToGrid2(int index) const;
+		int GetChildrenExpanded() const;
+		bool IsFullyExpanded() const;
 		void UpdateScore(bool win);
 		void ComputeDepth();
+		TreeState* CheckAndCreateChild(const Grid2& g);
+		TreeState* CheckAndCreateChild(int index);
 	};
 }
