@@ -10,10 +10,10 @@ namespace BeitaGo {
 	/**
 	 * Defines an AI player that uses deep learning to compute its decisions.
 	 */
-	class DeepLearningAIPlayer : public AIPlayer {
+	class MonteCarloAIPlayer : public AIPlayer {
 		public:
-		DeepLearningAIPlayer(Engine& engine, Color color);
-		~DeepLearningAIPlayer();
+		MonteCarloAIPlayer(Engine& engine, Color color);
+		~MonteCarloAIPlayer();
 
 		/**
 		 * Returns the most ideal space for this AI to pick.

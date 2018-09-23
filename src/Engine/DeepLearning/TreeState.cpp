@@ -6,7 +6,7 @@
 
 namespace BeitaGo {
 	TreeState::TreeState(const Board& _currentBoard, TreeState* parent, const Grid2& lastMove) : _currentBoard(_currentBoard), _parent(parent), _lastMove(lastMove) {
-		if (_currentBoard.GetDimensions().X() == _currentBoard.GetDimensions().Y() && _currentBoard.GetDimensions().X() == DeepLearningAIPlayer::EXPECTED_BOARD_SIZE) {
+		if (_currentBoard.GetDimensions().X() == _currentBoard.GetDimensions().Y() && _currentBoard.GetDimensions().X() == MonteCarloAIPlayer::EXPECTED_BOARD_SIZE) {
 			_totalWins = 0;
 			_totalSimulations = 0;
 			_childrenExpanded = 0;
@@ -16,7 +16,7 @@ namespace BeitaGo {
 			ComputeDepth();
 			_validMoves = _currentBoard.GetValidMoves(_currentBoard.GetWhoseTurn());
 		} else {
-			throw std::invalid_argument("DeepLearningAIPlayer given a board of an unsupported size " + std::to_string(_currentBoard.GetDimensions().X()));
+			throw std::invalid_argument("MonteCarloAIPlayer given a board of an unsupported size " + std::to_string(_currentBoard.GetDimensions().X()));
 		}
 	}
 	TreeState::~TreeState() {
@@ -112,7 +112,7 @@ namespace BeitaGo {
 	}
 
 	constexpr int TreeState::PassIndex() const {
-		return DeepLearningAIPlayer::EXPECTED_BOARD_SIZE * DeepLearningAIPlayer::EXPECTED_BOARD_SIZE;
+		return MonteCarloAIPlayer::EXPECTED_BOARD_SIZE * MonteCarloAIPlayer::EXPECTED_BOARD_SIZE;
 	}
 
 	int TreeState::Grid2ToIndex(const Grid2& g) const {

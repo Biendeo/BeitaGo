@@ -6,10 +6,10 @@
 #include <sstream>
 
 #include "DumbAIPlayer.h"
-#include "DeepLearningAIPlayer.h"
+#include "MonteCarloAIPlayer.h"
 
 GTPEngine::GTPEngine() {
-	_engine.NewGame(BeitaGo::Grid2(19, 19), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::White));
+	_engine.NewGame(BeitaGo::Grid2(19, 19), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::White));
 }
 
 GTPEngine::~GTPEngine() {
@@ -168,7 +168,7 @@ void GTPEngine::BoardSize(int id, const std::vector<std::string>& arguments) {
 			if (size > MAX_SIZE) {
 				PrintFailureResponse(id, "unacceptable size");
 			} else {
-				_engine.NewGame(BeitaGo::Grid2(size, size), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::White));
+				_engine.NewGame(BeitaGo::Grid2(size, size), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::White));
 				PrintSuccessResponse(id, "");
 			}
 		} catch (std::exception& e) {
@@ -182,7 +182,7 @@ void GTPEngine::BoardSize(int id, const std::vector<std::string>& arguments) {
 }
 
 void GTPEngine::ClearBoard(int id, const std::vector<std::string>& arguments) {
-	_engine.NewGame(BeitaGo::Grid2(_engine.GetBoard().GetDimensions().X(), _engine.GetBoard().GetDimensions().Y()), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::DeepLearningAIPlayer(_engine, BeitaGo::Color::White));
+	_engine.NewGame(BeitaGo::Grid2(_engine.GetBoard().GetDimensions().X(), _engine.GetBoard().GetDimensions().Y()), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::White));
 	PrintSuccessResponse(id, "");
 }
 

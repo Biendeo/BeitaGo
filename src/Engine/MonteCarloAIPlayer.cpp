@@ -1,4 +1,4 @@
-#include "DeepLearningAIPlayer.h"
+#include "MonteCarloAIPlayer.h"
 
 #include "Board.h"
 #include "DeepLearning/TreeState.h"
@@ -8,18 +8,18 @@
 #include <iostream>
 
 namespace BeitaGo {
-	DeepLearningAIPlayer::DeepLearningAIPlayer(BeitaGo::Engine& engine, BeitaGo::Color color) : AIPlayer(engine, color) {
+	MonteCarloAIPlayer::MonteCarloAIPlayer(BeitaGo::Engine& engine, BeitaGo::Color color) : AIPlayer(engine, color) {
 		rootState = nullptr;
 		currentState = nullptr;
 	}
 
-	DeepLearningAIPlayer::~DeepLearningAIPlayer() {
+	MonteCarloAIPlayer::~MonteCarloAIPlayer() {
 		if (rootState != nullptr) {
 			delete rootState;
 		}
 	}
 
-	Grid2 DeepLearningAIPlayer::MakeDecision() const {
+	Grid2 MonteCarloAIPlayer::MakeDecision() const {
 		if (rootState == nullptr) {
 			rootState = new TreeState(Board(GetEngine().GetBoard().GetDimensions()));
 			currentState = rootState;
@@ -30,7 +30,7 @@ namespace BeitaGo {
 		return currentState->GetMostLikelyMove();
 	}
 
-	std::array<bool, DeepLearningAIPlayer::INPUT_VECTOR_SIZE> DeepLearningAIPlayer::BoardToInputVector() const {
+	std::array<bool, MonteCarloAIPlayer::INPUT_VECTOR_SIZE> MonteCarloAIPlayer::BoardToInputVector() const {
 		std::array<bool, INPUT_VECTOR_SIZE> inputVector;
 		int index = 0;
 		for (int i = 0; i < HISTORY_USED + 1; ++i) {

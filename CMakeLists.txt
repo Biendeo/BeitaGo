@@ -32,7 +32,7 @@ message("BeitaGo: Making projects")
 # All projects will use this include directory. It should hold files made public by the engine.
 include_directories(./include)
 
-add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h src/Engine/MoveHistoryEntry.cpp include/MoveHistoryEntry.h src/Engine/DeepLearningAIPlayer.cpp include/DeepLearningAIPlayer.h src/Engine/DeepLearning/TreeState.cpp src/Engine/DeepLearning/TreeState.h)
+add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h src/Engine/MoveHistoryEntry.cpp include/MoveHistoryEntry.h src/Engine/MonteCarloAIPlayer.cpp include/MonteCarloAIPlayer.h src/Engine/DeepLearning/TreeState.cpp src/Engine/DeepLearning/TreeState.h)
 
 if(NOT NO_QT)
     add_executable(BeitaGoQt src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui ui/BoardView.cpp ui/BoardView.h)

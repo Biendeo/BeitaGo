@@ -5,13 +5,13 @@
 #include <vector>
 
 #include "Board.h"
-#include "DeepLearningAIPlayer.h"
+#include "MonteCarloAIPlayer.h"
 #include "Grid2.h"
 
 namespace BeitaGo {
 	class TreeState {
 		// Purely for debugging properties.
-		friend class DeepLearningAIPlayer;
+		friend class MonteCarloAIPlayer;
 
 		public:
 		TreeState(const Board& _currentBoard, TreeState* parent = nullptr, const Grid2& lastMove = PASS);
@@ -57,7 +57,7 @@ namespace BeitaGo {
 		Board _currentBoard;
 		TreeState* _parent;
 		Grid2 _lastMove;
-		std::array<TreeState*, DeepLearningAIPlayer::EXPECTED_BOARD_SIZE * DeepLearningAIPlayer::EXPECTED_BOARD_SIZE + 1> _children;
+		std::array<TreeState*, MonteCarloAIPlayer::EXPECTED_BOARD_SIZE * MonteCarloAIPlayer::EXPECTED_BOARD_SIZE + 1> _children;
 		int _totalWins;
 		int _totalSimulations;
 		std::mutex _lock;
