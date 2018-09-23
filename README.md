@@ -10,9 +10,9 @@ You'll need to perform the following to get this program working:
 ```
 git clone --recurse-submodules https://github.com/Biendeo/BeitaGo.git
 ```
-- Run CMake in the root folder of the project, supplying the argument `CMAKE_PREFIX_PATH` to where Qt is installed (so CMake finds the modules properly). Supply any extra arguments as you see fit:
-    - Define `NO_QT` to not compile BeitaGoQt. You won't need the Qt libraries for this.
-    - If you do want the Qt build, you'll need to download a version of [Qt 5](https://www.qt.io/). I've tested this using Qt 5.10.1, but older versions may work. Then, add the Qt path into your `CMAKE_PREFIX_PATH` variable, and it should detect it.
+- Run CMake in the root folder of the project. Supply any extra arguments as you see fit:
+    - Define `BEITAGO_QT` to also compile BeitaGoQt. You only need the Qt libraries should you define this term.
+      - If you do want the Qt build, you'll need to download a version of [Qt 5](https://www.qt.io/). I've tested this using Qt 5.10.1, but older versions may work. Then, add the Qt path into your `CMAKE_PREFIX_PATH` variable, and it should detect it.
     - Define `USE_AVX_INSTRUCTIONS` to slightly speed up dlib's execution on the CPU.
     - Define `DLIB_USE_CUDA` if you have CUDA drivers installed and cuDNN libraries available to greatly speed up dlib's training.
     - Define `CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS` to get CMake to export the engine as a dynamic DLL properly for Visual Studio builds.
@@ -33,7 +33,7 @@ These are all the features that I intend to make:
 ### Engine
 - [x] Board state
 - [x] Player interaction
-- [ ] Undo/redo history
+- [x] Undo/redo history
 - [ ] Scoring and win state
 - [ ] Handicap
 - [x] AI
@@ -43,7 +43,7 @@ These are all the features that I intend to make:
 - [x] Manage game state
 - [ ] Deep learning training
 - [ ] Playing at a higher level
-- [ ] Knowing when to pass/resign
+- [x] Knowing when to pass/resign
 
 ### Qt UI (not the main focus)
 - [x] Draw board

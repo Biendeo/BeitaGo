@@ -18,7 +18,7 @@ message("BeitaGo: Adding googletest")
 set(GOOGLE_TEST_DIR lib/googletest)
 add_subdirectory(${GOOGLE_TEST_DIR})
 
-if(NOT NO_QT)
+if(BEITAGO_QT)
     message("BeitaGo: Adding Qt")
     find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets)
     set(QT5_LIBRARIES Qt5::Core Qt5::Gui Qt5::Widgets)
@@ -34,7 +34,7 @@ include_directories(./include)
 
 add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h src/Engine/MoveHistoryEntry.cpp include/MoveHistoryEntry.h src/Engine/MonteCarloAIPlayer.cpp include/MonteCarloAIPlayer.h src/Engine/DeepLearning/MonteCarloTree.cpp src/Engine/DeepLearning/MonteCarloTree.h src/Engine/DeepLearning/MonteCarloNode.cpp src/Engine/DeepLearning/MonteCarloNode.h)
 
-if(NOT NO_QT)
+if(BEITAGO__QT)
     add_executable(BeitaGoQt src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui ui/BoardView.cpp ui/BoardView.h)
     # All QObjects sit in the UI folder. While you technically can include .cpp files from here, you
     # won't get far with that.
@@ -66,7 +66,7 @@ target_link_libraries(TestDLIB dlib)
 # On Windows, Qt needs this deployment options to add the right DLLs next to it. I dunno about
 # other platforms though.
 # Also, on Visual Studio, it uses an extra suffix here, so add that.
-IF(WIN32 AND NOT NO_QT)
+IF(WIN32 AND BEITAGO_QT)
     message("BeitaGo: Making BeitaGoQt post-build deployment")
     IF(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(BEITA_GO_DEBUG_STATUS debug)
