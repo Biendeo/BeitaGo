@@ -10,8 +10,11 @@
 namespace BeitaGo {
 	MonteCarloAIPlayer::MonteCarloAIPlayer(BeitaGo::Engine& engine, BeitaGo::Color color) : AIPlayer(engine, color) {}
 
+	MonteCarloAIPlayer::~MonteCarloAIPlayer() {}
+
 	Grid2 MonteCarloAIPlayer::MakeDecision() const {
 		MonteCarloTree tree(GetEngine().GetBoard());
+		tree.InitializeNodes(1, 1);
 		tree.RunSimulations(4000);
 		return tree.GetMostLikelyMove();
 	}

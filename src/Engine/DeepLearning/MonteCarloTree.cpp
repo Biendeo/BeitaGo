@@ -1,8 +1,10 @@
 #include "MonteCarloTree.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <vector>
 
 namespace BeitaGo {
 
@@ -21,12 +23,33 @@ namespace BeitaGo {
 
 	void MonteCarloTree::RunSimulation() {
 		//TODO: Use the heuristic here.
+		constexpr double c = 1.500;
 		std::default_random_engine randomEngine;
 		randomEngine.seed(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-		std::uniform_int_distribution<int> validMoveDistribution(0, static_cast<int>(_validMoves.size()) - 1);
-		int validMoveIndex = validMoveDistribution(randomEngine);
 
-		MonteCarloNode& node = _children[Grid2ToIndex(_validMoves[validMoveIndex])];
+		_lock.lock();
+		std::vector<std::pair<double, Grid2>> movesOrdered;
+		for (const Grid2& g : _validMoves) {
+			const MonteCarloNode& node = _children[Grid2ToIndex(g)];
+			movesOrdered.emplace_back(std::make_pair(static_cast<double>(node.TotalWins()) / node.TotalSimulations() + c * std::sqrt(std::log(_totalSimulations) / node.TotalSimulations()), g));
+		}
+		std::sort(movesOrdered.begin(), movesOrdered.end(), [](const std::pair<double, Grid2>& a, const std::pair<double, Grid2>& b) -> bool { return a.first > b.first; });
+
+		// Since there may be multiple moves with the same best score, let's just randomly pick one
+		// that's the best.
+		std::vector<std::pair<double, Grid2>> bestMoves;
+		for (const auto& p : movesOrdered) {
+			if (p.first < movesOrdered[0].first) {
+				break;
+			} else {
+				bestMoves.push_back(p);
+			}
+		}
+		_lock.unlock();
+
+		std::uniform_int_distribution<int> validMoveDistribution(0, static_cast<int>(bestMoves.size()) - 1);
+		int validMoveIndex = validMoveDistribution(randomEngine);
+		MonteCarloNode& node = _children[Grid2ToIndex(bestMoves[validMoveIndex].second)];
 		if (node.RunSimulation()) {
 			_lock.lock();
 			++_totalWins;
@@ -36,6 +59,50 @@ namespace BeitaGo {
 		++_totalSimulations;
 		//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 		_lock.unlock();
+	}
+
+	void MonteCarloTree::InitializeNodes(int n, int maxThreads) {
+		// There's n * (x * y) + 1 simulations.
+		const int x = _board.GetDimensions().X();
+		const int y = _board.GetDimensions().Y();
+		for (int i = 0; i < n; ++i) {
+			for (int a = 0; a < (x * y + 1); ++a) {
+				MonteCarloNode& node = _children[a];
+				if (node.IsValid()) {
+					if (node.RunSimulation()) {
+						_lock.lock();
+						++_totalWins;
+						_lock.unlock();
+					}
+					_lock.lock();
+					++_totalSimulations;
+					//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
+					_lock.unlock();
+				}
+			}
+		}
+		/*
+		std::vector<std::thread> threads;
+		try {
+			for (int i = 0; i < maxThreads; ++i) {
+				std::vector<int> indiciesToCheck;
+				for (int a = i; a < (n * (x * y + 1)); a += maxThreads) {
+					indiciesToCheck.push_back(a % (x * y + 1));
+				}
+
+				threads.emplace_back(std::thread([&, indiciesToCheck]() {
+				}));
+				//TODO: This will cut off some desired executions.
+				threads.emplace_back(std::thread([&]() { this->RunSimulations(n / maxThreads, 1); }));
+			}
+			for (int i = 0; i < maxThreads; ++i) {
+				threads[i].join();
+			}
+		} catch (std::exception& e) {
+			std::cout << e.what() << "\n";
+			0;
+		}
+		*/
 	}
 
 	void MonteCarloTree::RunSimulations(int n, int maxThreads) {

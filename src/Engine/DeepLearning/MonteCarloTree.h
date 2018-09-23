@@ -26,6 +26,12 @@ namespace BeitaGo {
 		void RunSimulation();
 
 		/**
+		 * To set up the nodes, we run a fixed number of initial simulations on each one.
+		 * @param maxThreads
+		 */
+		void InitializeNodes(int n, int maxThreads = std::thread::hardware_concurrency());
+
+		/**
 		 * Runs n iterations of the Monte Carlo Tree Search spread among a given number of threads.
 		 * @param n
 		 * @param maxThreads
