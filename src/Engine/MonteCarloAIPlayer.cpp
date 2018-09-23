@@ -14,7 +14,7 @@ namespace BeitaGo {
 
 	Grid2 MonteCarloAIPlayer::MakeDecision() const {
 		MonteCarloTree tree(GetEngine().GetBoard());
-		tree.InitializeNodes(1, 1);
+		tree.InitializeNodes(5);
 		tree.RunSimulations(4000);
 		return tree.GetMostLikelyMove();
 	}

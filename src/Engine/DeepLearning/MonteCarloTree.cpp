@@ -57,52 +57,43 @@ namespace BeitaGo {
 		}
 		_lock.lock();
 		++_totalSimulations;
-		//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
+		std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 		_lock.unlock();
 	}
 
 	void MonteCarloTree::InitializeNodes(int n, int maxThreads) {
-		// There's n * (x * y) + 1 simulations.
+		// There's n * ((x * y) + 1) simulations.
 		const int x = _board.GetDimensions().X();
 		const int y = _board.GetDimensions().Y();
-		for (int i = 0; i < n; ++i) {
-			for (int a = 0; a < (x * y + 1); ++a) {
-				MonteCarloNode& node = _children[a];
-				if (node.IsValid()) {
-					if (node.RunSimulation()) {
+		
+		std::vector<std::thread> threads;
+		for (int i = 0; i < maxThreads; ++i) {
+			std::vector<int> indiciesToCheck;
+			for (int a = i; a < (n * (x * y + 1)); a += maxThreads) {
+				indiciesToCheck.push_back(a % (x * y + 1));
+			}
+
+			//TODO: This will cut off some desired executions.
+			threads.emplace_back(std::thread([&, indiciesToCheck]() {
+				for (const int& a : indiciesToCheck) {
+					MonteCarloNode& node = _children[a];
+					if (node.IsValid()) {
+						if (node.RunSimulation()) {
+							_lock.lock();
+							++_totalWins;
+							_lock.unlock();
+						}
 						_lock.lock();
-						++_totalWins;
+						++_totalSimulations;
+						std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 						_lock.unlock();
 					}
-					_lock.lock();
-					++_totalSimulations;
-					//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
-					_lock.unlock();
 				}
-			}
+			}));
 		}
-		/*
-		std::vector<std::thread> threads;
-		try {
-			for (int i = 0; i < maxThreads; ++i) {
-				std::vector<int> indiciesToCheck;
-				for (int a = i; a < (n * (x * y + 1)); a += maxThreads) {
-					indiciesToCheck.push_back(a % (x * y + 1));
-				}
-
-				threads.emplace_back(std::thread([&, indiciesToCheck]() {
-				}));
-				//TODO: This will cut off some desired executions.
-				threads.emplace_back(std::thread([&]() { this->RunSimulations(n / maxThreads, 1); }));
-			}
-			for (int i = 0; i < maxThreads; ++i) {
-				threads[i].join();
-			}
-		} catch (std::exception& e) {
-			std::cout << e.what() << "\n";
-			0;
+		for (int i = 0; i < maxThreads; ++i) {
+			threads[i].join();
 		}
-		*/
 	}
 
 	void MonteCarloTree::RunSimulations(int n, int maxThreads) {
