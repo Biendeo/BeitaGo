@@ -151,6 +151,17 @@ namespace BeitaGo {
 		 */
 		std::vector<MoveHistoryEntry> GetHistory() const;
 
+		/**
+		 * Returns the number of pieces the black player has captured.
+		 */
+		int GetBlackPiecesTaken() const;
+
+		/**
+		 * Returns the number of pieces the white player has captured.
+		 */
+		int GetWhitePiecesTaken() const;
+
+
 		private:
 		/**
 		 * After placing a move, this clears any possible tiles that can be removed.
@@ -175,6 +186,8 @@ namespace BeitaGo {
 		std::vector<MoveHistoryEntry> _history;
 
 		Color _whoseTurn;
+		int _blackPiecesTaken;
+		int _whitePiecesTaken;
 		int _turnCount;
 		double _komi;
 	};

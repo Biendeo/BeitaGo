@@ -14,6 +14,8 @@ namespace BeitaGo {
 		_tiles = std::vector<std::vector<Color>>(dimensions.X(), std::vector<Color>(dimensions.Y(), Color::None));
 		RecomputeGroupsAndLiberties();
 		_whoseTurn = Color::Black;
+		_blackPiecesTaken = 0;
+		_whitePiecesTaken = 0;
 		_turnCount = 1;
 		_komi = 6.5;
 	}
@@ -51,15 +53,22 @@ namespace BeitaGo {
 			if (position != PASS) {
 				//TODO: Can I do this smoother?
 				RecomputeGroupsAndLiberties();
+				auto piecesTakenStage1 = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
 				Neighbors(position, [&](const Grid2& g) {
 					ClearPossibleTiles(g);
-					//RecomputeGroupsAndLiberties();
 				});
 				// If none of the other tiles were removed, this move could've been a suicide play,
 				// so remove this group if it has zero liberties. It should only have zero liberties
 				// if any of the other groups were not removed.
+				auto piecesTakenStage2 = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+				if (piecesTakenStage1 == piecesTakenStage2) {
+					RecomputeGroupsAndLiberties();
+				}
 				ClearPossibleTiles(position);
-				RecomputeGroupsAndLiberties();
+				auto piecesTakenStage3 = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+				if (piecesTakenStage3 == piecesTakenStage2) {
+					RecomputeGroupsAndLiberties();
+				}
 			}
 		} else {
 			std::stringstream s;
@@ -196,12 +205,25 @@ namespace BeitaGo {
 		return _history;
 	}
 
+	int Board::GetBlackPiecesTaken() const {
+		return _blackPiecesTaken;
+	}
+
+	int Board::GetWhitePiecesTaken() const {
+		return _whitePiecesTaken;
+	}
+
 	void Board::ClearPossibleTiles(const Grid2& position) {
 		if (!IsWithinBoard(position)) {
 			return;
 		}
 		if (_liberties[_groups[position.X()][position.Y()]] == 0) {
 			for (const Grid2& space : GetGroup(position)) {
+				if (_tiles[space.X()][space.Y()] == Color::White) {
+					++_blackPiecesTaken;
+				} else if (_tiles[space.X()][space.Y()] == Color::Black) {
+					++_whitePiecesTaken;
+				}
 				_tiles[space.X()][space.Y()] = Color::None;
 			}
 		}
