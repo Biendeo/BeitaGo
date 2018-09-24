@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 
 #include "Constants.h"
@@ -156,8 +157,21 @@ namespace BeitaGo {
 		 */
 		void ClearPossibleTiles(const Grid2& position);
 
+		/**
+		 * Recomputes the groups and liberties cached.
+		 */
+		void RecomputeGroupsAndLiberties();
+
+		/**
+		 * Gets the direct neighbors to this Grid2 and runs a function on each one.
+		 * Automatically culls positions that are outside of the board.
+		 */
+		inline void Neighbors(const Grid2& g, std::function<void(const Grid2&)> f) const;
+
 		Grid2 _dimensions;
 		std::vector<std::vector<Color>> _tiles;
+		std::vector<std::vector<int>> _groups;
+		std::vector<int> _liberties;
 		std::vector<MoveHistoryEntry> _history;
 
 		Color _whoseTurn;

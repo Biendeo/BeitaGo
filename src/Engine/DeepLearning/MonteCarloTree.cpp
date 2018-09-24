@@ -57,7 +57,7 @@ namespace BeitaGo {
 		}
 		_lock.lock();
 		++_totalSimulations;
-		std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
+		//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 		_lock.unlock();
 	}
 
@@ -85,7 +85,7 @@ namespace BeitaGo {
 						}
 						_lock.lock();
 						++_totalSimulations;
-						std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
+						//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 						_lock.unlock();
 					}
 				}
@@ -129,7 +129,7 @@ namespace BeitaGo {
 		return bestMove.second;
 	}
 
-	constexpr int MonteCarloTree::PassIndex() const {
+	int MonteCarloTree::PassIndex() const {
 		return MonteCarloAIPlayer::EXPECTED_BOARD_SIZE * MonteCarloAIPlayer::EXPECTED_BOARD_SIZE;
 	}
 

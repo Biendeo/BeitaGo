@@ -20,7 +20,7 @@ void PrintBoard(const Board& board) {
 	std::cout << "+\n";
 
 	// Now, for each row, print the sides and any tiles.
-	for (int y = 0; y < board.GetDimensions().Y(); ++y) {
+	for (int y = board.GetDimensions().Y() - 1; y >= 0; --y) {
 		std::cout << "|";
 		for (int x = 0; x < board.GetDimensions().X(); ++x) {
 			if (board.GetTile(Grid2(x, y)) == Color::None) {

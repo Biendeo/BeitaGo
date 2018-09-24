@@ -1,19 +1,18 @@
 #include "Board.h"
 
+#include <functional>
 #include <queue>
 #include <set>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
 
 #include <iostream>
 
 namespace BeitaGo {
 	Board::Board(const Grid2& dimensions) : _dimensions(dimensions) {
-		_tiles = std::vector<std::vector<Color>>(dimensions.X());
-		for (auto& v : _tiles) {
-			//TODO: Double check that this actually makes a blank field, and not anything else.
-			v = std::vector<Color>(dimensions.Y());
-		}
+		_tiles = std::vector<std::vector<Color>>(dimensions.X(), std::vector<Color>(dimensions.Y(), Color::None));
+		RecomputeGroupsAndLiberties();
 		_whoseTurn = Color::Black;
 		_turnCount = 1;
 		_komi = 6.5;
@@ -50,14 +49,17 @@ namespace BeitaGo {
 			// When placing a piece, only the neighbouring tiles' liberties are changed, so you
 			// only need to check whether those should be removed.
 			if (position != PASS) {
-				ClearPossibleTiles(position + Grid2(1, 0));
-				ClearPossibleTiles(position + Grid2(0, 1));
-				ClearPossibleTiles(position + Grid2(-1, 0));
-				ClearPossibleTiles(position + Grid2(0, -1));
+				//TODO: Can I do this smoother?
+				RecomputeGroupsAndLiberties();
+				Neighbors(position, [&](const Grid2& g) {
+					ClearPossibleTiles(g);
+					//RecomputeGroupsAndLiberties();
+				});
 				// If none of the other tiles were removed, this move could've been a suicide play,
 				// so remove this group if it has zero liberties. It should only have zero liberties
 				// if any of the other groups were not removed.
 				ClearPossibleTiles(position);
+				RecomputeGroupsAndLiberties();
 			}
 		} else {
 			std::stringstream s;
@@ -83,6 +85,7 @@ namespace BeitaGo {
 		//? While this may not scale that well, I think it'll be satisfactory for even the larger
 		//? board sizes people will use.
 		std::vector<Grid2> v;
+		v.reserve(GetDimensions().X() * GetDimensions().Y() + 1);
 
 		for (int y = 0; y < GetDimensions().Y(); ++y) {
 			for (int x = 0; x < GetDimensions().X(); ++x) {
@@ -129,59 +132,23 @@ namespace BeitaGo {
 		if (!IsWithinBoard(position) || GetTile(position) == Color::None) {
 			return -1;
 		} else {
-			int liberties = 0;
-			if (IsWithinBoard(position + Grid2(1, 0)) && GetTile(position + Grid2(1, 0)) == Color::None) {
-				++liberties;
-			}
-			if (IsWithinBoard(position + Grid2(0, 1)) && GetTile(position + Grid2(0, 1)) == Color::None) {
-				++liberties;
-			}
-			if (IsWithinBoard(position + Grid2(-1, 0)) && GetTile(position + Grid2(-1, 0)) == Color::None) {
-				++liberties;
-			}
-			if (IsWithinBoard(position + Grid2(0, -1)) && GetTile(position + Grid2(0, -1)) == Color::None) {
-				++liberties;
-			}
-			return liberties;
+			return _liberties[_groups[position.X()][position.Y()]];
 		}
 	}
 
 	std::vector<Grid2> Board::GetGroup(const Grid2& position) const {
 		if (IsWithinBoard(position) && GetTile(position) != Color::None) {
-			Color color = GetTile(position);
-			auto setComp = [](const Grid2& a, const Grid2& b) { return a.X() < b.X() || (a.X() == b.X() && a.Y() < b.Y()); };
-			std::set<Grid2, decltype(setComp)> checkedSpaces(setComp);
-			std::set<Grid2, decltype(setComp)> connectedSpaces(setComp);
-			std::queue<Grid2> spacesToCheck;
-
-			spacesToCheck.push(position);
-			checkedSpaces.insert(position);
-
-			while (!spacesToCheck.empty()) {
-				Grid2 currentSpace = spacesToCheck.front();
-				spacesToCheck.pop();
-				// Any tile outside of the board can be ignored, as they'll still border the territory.
-				if (IsWithinBoard(currentSpace) && GetTile(currentSpace) == color) {
-					connectedSpaces.insert(currentSpace);
-					if (checkedSpaces.find(currentSpace + Grid2(1, 0)) == checkedSpaces.end()) {
-						spacesToCheck.push(currentSpace + Grid2(1, 0));
-						checkedSpaces.insert(currentSpace + Grid2(1, 0));
-					}
-					if (checkedSpaces.find(currentSpace + Grid2(0, 1)) == checkedSpaces.end()) {
-						spacesToCheck.push(currentSpace + Grid2(0, 1));
-						checkedSpaces.insert(currentSpace + Grid2(0, 1));
-					}
-					if (checkedSpaces.find(currentSpace + Grid2(-1, 0)) == checkedSpaces.end()) {
-						spacesToCheck.push(currentSpace + Grid2(-1, 0));
-						checkedSpaces.insert(currentSpace + Grid2(-1, 0));
-					}
-					if (checkedSpaces.find(currentSpace + Grid2(0, -1)) == checkedSpaces.end()) {
-						spacesToCheck.push(currentSpace + Grid2(0, -1));
-						checkedSpaces.insert(currentSpace + Grid2(0, -1));
+			int groupIndex = _groups[position.X()][position.Y()];
+			std::vector<Grid2> tiles;
+			tiles.reserve(GetDimensions().X() * GetDimensions().Y());
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				for (int y = 0; y < GetDimensions().Y(); ++y) {
+					if (_groups[x][y] == groupIndex) {
+						tiles.emplace_back(x, y);
 					}
 				}
 			}
-			return std::vector<Grid2>(connectedSpaces.begin(), connectedSpaces.end());
+			return tiles;
 		} else {
 			return std::vector<Grid2>();
 		}
@@ -190,27 +157,9 @@ namespace BeitaGo {
 	int Board::GetGroupLiberties(const std::vector<Grid2>& group) const {
 		if (group.size() == 0) {
 			return 0;
+		} else {
+			return GetLiberties(group[0]);
 		}
-		Color color = GetTile(group[0]);
-		auto setComp = [](const Grid2& a, const Grid2& b) { return a.X() < b.X() || (a.X() == b.X() && a.Y() < b.Y()); };
-		std::set<Grid2, decltype(setComp)> checkedSpaces(setComp);
-		std::set<Grid2, decltype(setComp)> connectedLiberties(setComp);
-
-		for (const Grid2& space : group) {
-			std::vector<Grid2> neighbouringSpaces;
-			neighbouringSpaces.emplace_back(space + Grid2(1, 0));
-			neighbouringSpaces.emplace_back(space + Grid2(0, 1));
-			neighbouringSpaces.emplace_back(space + Grid2(-1, 0));
-			neighbouringSpaces.emplace_back(space + Grid2(0, -1));
-
-			for (const Grid2& neighbouringSpace : neighbouringSpaces) {
-				if (IsWithinBoard(neighbouringSpace) && GetTile(neighbouringSpace) == Color::None) {
-					connectedLiberties.insert(neighbouringSpace);
-				}
-			}
-		}
-
-		return static_cast<int>(connectedLiberties.size());
 	}
 
 	void Board::NextTurn() {
@@ -251,12 +200,63 @@ namespace BeitaGo {
 		if (!IsWithinBoard(position)) {
 			return;
 		}
-		//! This is the biggest sink to computation time; can this be faster?
-		std::vector<Grid2> group = GetGroup(position);
-		if (GetGroupLiberties(group) == 0) {
-			for (const Grid2& space : group) {
+		if (_liberties[_groups[position.X()][position.Y()]] == 0) {
+			for (const Grid2& space : GetGroup(position)) {
 				_tiles[space.X()][space.Y()] = Color::None;
 			}
+		}
+	}
+
+	void Board::RecomputeGroupsAndLiberties() {
+		_groups = std::vector<std::vector<int>>(_dimensions.X(), std::vector<int>(_dimensions.Y(), 0));
+		int currentIndex = 1;
+		for (int x = 0; x < _dimensions.X(); ++x) {
+			for (int y = 0; y < _dimensions.Y(); ++y) {
+				if (_groups[x][y] == 0) {
+					_groups[x][y] = currentIndex;
+					Color color = GetTile(Grid2(x, y));
+					std::stack<Grid2> spacesToCheck;
+					spacesToCheck.emplace(x, y);
+					while (!spacesToCheck.empty()) {
+						Grid2 currentSpace = spacesToCheck.top();
+						spacesToCheck.pop();
+						Neighbors(currentSpace, [this, &spacesToCheck, currentIndex, color](const Grid2& g) {
+							if (_groups[g.X()][g.Y()] == 0 && GetTile(g) == color) {
+								_groups[g.X()][g.Y()] = currentIndex;
+								spacesToCheck.push(g);
+							}
+						});
+					}
+					++currentIndex;
+				}
+			}
+		}
+
+		_liberties = std::vector<int>(currentIndex, 0);
+		for (int x = 0; x < _dimensions.X(); ++x) {
+			for (int y = 0; y < _dimensions.Y(); ++y) {
+				Color color = GetTile(Grid2(x, y));
+				if (color == Color::None) {
+					Neighbors(Grid2(x, y), [this](const Grid2& g) {
+						++_liberties[_groups[g.X()][g.Y()]];
+					});
+				}
+			}
+		}
+	}
+
+	inline void Board::Neighbors(const Grid2& g, std::function<void(const Grid2&)> f) const {
+		if (IsWithinBoard(g + Grid2(1, 0))) {
+			f(g + Grid2(1, 0));
+		}
+		if (IsWithinBoard(g + Grid2(0, 1))) {
+			f(g + Grid2(0, 1));
+		}
+		if (IsWithinBoard(g + Grid2(-1, 0))) {
+			f(g + Grid2(-1, 0));
+		}
+		if (IsWithinBoard(g + Grid2(0, -1))) {
+			f(g + Grid2(0, -1));
 		}
 	}
 }

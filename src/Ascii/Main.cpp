@@ -15,17 +15,17 @@ int main(int argc, char* argv[]) {
 	std::cout << "This just is an ASCII version of the game to test it before using the UI.\n";
 
 	Engine e;
-	e.NewGame(Grid2(9, 9), new HumanPlayer(e, Color::Black), new DumbAIPlayer(e, Color::White));
+	e.NewGame(Grid2(9, 9), new HumanPlayer(e, Color::Black), new HumanPlayer(e, Color::White));
 
 	HumanPlayer& humanPlayer = dynamic_cast<HumanPlayer&>(e.GetPlayer1());
-	AIPlayer& aiPlayer = dynamic_cast<AIPlayer&>(e.GetPlayer2());
+	HumanPlayer& aiPlayer = dynamic_cast<HumanPlayer&>(e.GetPlayer2());
 
 	// I know that player 1 is human and player 2 is a dumb AI.
 	PrintBoard(e.GetBoard());
 	while (!e.GetBoard().IsGameOver()) {
 		humanPlayer.ActDecision(AskForHumanMove());
 		PrintBoard(e.GetBoard());
-		aiPlayer.ActDecision(aiPlayer.MakeDecision());
+		aiPlayer.ActDecision(AskForHumanMove());
 		PrintBoard(e.GetBoard());
 	}
 

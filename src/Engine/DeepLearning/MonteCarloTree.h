@@ -2,6 +2,7 @@
 
 #include <array>
 #include <mutex>
+#include <thread>
 
 #include "Board.h"
 #include "Grid2.h"
@@ -52,7 +53,7 @@ namespace BeitaGo {
 		std::mutex _lock;
 		const std::vector<Grid2> _validMoves; // This is just for caching purposes.
 
-		constexpr int PassIndex() const;
+		int PassIndex() const;
 		int Grid2ToIndex(const Grid2& g) const;
 		Grid2 IndexToGrid2(int index) const;
 	};
