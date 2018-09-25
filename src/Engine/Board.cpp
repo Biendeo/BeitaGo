@@ -38,7 +38,7 @@ namespace BeitaGo {
 	}
 
 	bool Board::IsGameOver() const {
-		return _history.size() > 2 && (_history.end() - 2)->GetPosition() == PASS && (_history.end() - 1)->GetPosition() == PASS;
+		return _history.size() >= 2 && (_history.end() - 2)->GetPosition() == PASS && (_history.end() - 1)->GetPosition() == PASS;
 	}
 
 	void Board::PlacePiece(const Grid2& position, Color color) {
@@ -47,7 +47,6 @@ namespace BeitaGo {
 				_tiles[position.X()][position.Y()] = color;
 			}
 			_history.emplace_back(position, color);
-			//TODO: Double check if you can solve this by just checking the neighbouring tiles.
 			// When placing a piece, only the neighbouring tiles' liberties are changed, so you
 			// only need to check whether those should be removed.
 			if (position != PASS) {
@@ -78,12 +77,24 @@ namespace BeitaGo {
 	}
 
 	bool Board::IsMoveValid(const Grid2& position, Color color) const {
-		if (position == PASS || (IsWithinBoard(position) && GetTile(position) == Color::None)) {
-			//TODO: Use greater scrutiny here.
+		if (position == PASS || (IsWithinBoard(position) && GetTile(position) == Color::None && !IsMoveSuicidePlay(position, color))) {
 			return true;
 		} else {
 			return false;
 		}
+	}
+
+	bool Board::IsMoveSuicidePlay(const Grid2& position, Color color) const {
+		int emptyNeighbors = 0;
+		bool safeFriendlyGroup = false;
+		Neighbors(position, [this, &emptyNeighbors, &safeFriendlyGroup, color](const Grid2& g) {
+			if (GetTile(g) == Color::None) {
+				++emptyNeighbors;
+			} else if (GetTile(g) == color && _liberties[_groups[g.X()][g.Y()]] > 1) {
+				safeFriendlyGroup = true;
+			}
+		});
+		return emptyNeighbors == 0 && !safeFriendlyGroup;
 	}
 
 	bool Board::IsWithinBoard(const Grid2& position) const {

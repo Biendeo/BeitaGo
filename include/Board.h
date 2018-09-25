@@ -70,6 +70,15 @@ namespace BeitaGo {
 		bool IsMoveValid(const Grid2& position, Color color) const;
 
 		/**
+		 * Returns whether placing a piece at the given position with the given color would be
+		 * a suicide play or not.
+		 * @param position
+		 * @param color
+		 * @return
+		 */
+		bool IsMoveSuicidePlay(const Grid2& position, Color color) const;
+
+		/**
 		 * Returns whether the given position is within the grounds of the board.
 		 * @param position
 		 * @return
