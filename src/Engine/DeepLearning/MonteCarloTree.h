@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 #include <mutex>
 #include <thread>
 
@@ -38,6 +39,13 @@ namespace BeitaGo {
 		 * @param maxThreads
 		 */
 		void RunSimulations(int n, int maxThreads = std::thread::hardware_concurrency());
+
+		/**
+		 * Runs as many iterations of the Monte Carlo Tree Search until the time is reached.
+		 * @param n
+		 * @param maxThreads
+		 */
+		void RunSimulations(const std::chrono::high_resolution_clock::time_point& endTime, int maxThreads = std::thread::hardware_concurrency());
 
 		/**
 		 * Returns the move that was computed to have the best likelihood of victory.

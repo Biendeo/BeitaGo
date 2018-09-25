@@ -57,7 +57,7 @@ namespace BeitaGo {
 		}
 		_lock.lock();
 		++_totalSimulations;
-		//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
+		std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 		_lock.unlock();
 	}
 
@@ -85,7 +85,7 @@ namespace BeitaGo {
 						}
 						_lock.lock();
 						++_totalSimulations;
-						//std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
+						std::cout << _totalWins << " / " << _totalSimulations << "(" << _totalWins / static_cast<double>(_totalSimulations) * 100.0 << "%)\n";
 						_lock.unlock();
 					}
 				}
@@ -106,6 +106,23 @@ namespace BeitaGo {
 			for (int i = 0; i < maxThreads; ++i) {
 				//TODO: This will cut off some desired executions.
 				threads.emplace_back(std::thread([&]() { this->RunSimulations(n / maxThreads, 1); }));
+			}
+			for (int i = 0; i < maxThreads; ++i) {
+				threads[i].join();
+			}
+		}
+	}
+
+	void MonteCarloTree::RunSimulations(const std::chrono::high_resolution_clock::time_point& endTime, int maxThreads) {
+		if (maxThreads == 1) {
+			while (std::chrono::high_resolution_clock::now() < endTime) {
+				RunSimulation();
+			}
+		} else {
+			std::vector<std::thread> threads;
+			for (int i = 0; i < maxThreads; ++i) {
+				//TODO: This will cut off some desired executions.
+				threads.emplace_back(std::thread([&]() { this->RunSimulations(endTime, 1); }));
 			}
 			for (int i = 0; i < maxThreads; ++i) {
 				threads[i].join();
