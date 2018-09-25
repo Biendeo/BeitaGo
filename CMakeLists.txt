@@ -49,6 +49,8 @@ add_executable(BeitaGoTest test/TestMain.cpp test/TestEngine.h test/TestGrid2.h)
 target_include_directories(BeitaGoTest PRIVATE ${GOOGLE_TEST_DIR}/googletest/include)
 target_link_libraries(BeitaGoTest BeitaGoEngine gtest)
 
+add_test(NAME BeitaGoTestingStuff COMMAND BeitaGoTest)
+
 add_executable(BeitaGoGTP src/GTP/Main.cpp src/GTP/GTPEngine.h src/GTP/GTPEngine.cpp)
 target_link_libraries(BeitaGoGTP BeitaGoEngine)
 

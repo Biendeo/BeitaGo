@@ -52,21 +52,31 @@ namespace BeitaGo {
 			if (position != PASS) {
 				//TODO: Can I do this smoother?
 				RecomputeGroupsAndLiberties();
-				auto piecesTakenStage1 = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+				auto piecesTakenLast = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+				auto piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
 				Neighbors(position, [&](const Grid2& g) {
-					ClearPossibleTiles(g);
+					if (GetTile(g) == (color == Color::Black ? Color::White : Color::Black)) {
+						ClearPossibleTiles(g);
+						piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+						if (piecesTakenLast != piecesTakenCurrent) {
+							RecomputeGroupsAndLiberties();
+							piecesTakenLast = piecesTakenCurrent;
+						}
+					}
 				});
 				// If none of the other tiles were removed, this move could've been a suicide play,
 				// so remove this group if it has zero liberties. It should only have zero liberties
 				// if any of the other groups were not removed.
-				auto piecesTakenStage2 = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
-				if (piecesTakenStage1 == piecesTakenStage2) {
+				piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+				if (piecesTakenLast != piecesTakenCurrent) {
 					RecomputeGroupsAndLiberties();
+					piecesTakenLast = piecesTakenCurrent;
 				}
 				ClearPossibleTiles(position);
-				auto piecesTakenStage3 = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
-				if (piecesTakenStage3 == piecesTakenStage2) {
+				piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+				if (piecesTakenLast != piecesTakenCurrent) {
 					RecomputeGroupsAndLiberties();
+					piecesTakenLast = piecesTakenCurrent;
 				}
 			}
 		} else {
@@ -90,7 +100,7 @@ namespace BeitaGo {
 		Neighbors(position, [this, &emptyNeighbors, &safeFriendlyGroup, color](const Grid2& g) {
 			if (GetTile(g) == Color::None) {
 				++emptyNeighbors;
-			} else if (GetTile(g) == color && _liberties[_groups[g.X()][g.Y()]] > 1) {
+			} else if (GetTile(g) == color && _liberties[_groups[g.X()][g.Y()]] > 1 || _liberties[_groups[g.X()][g.Y()]] == 1) {
 				safeFriendlyGroup = true;
 			}
 		});
@@ -136,14 +146,42 @@ namespace BeitaGo {
 		//TODO: This is not accurate!
 		int whiteTiles = 0;
 		int blackTiles = 0;
+		std::vector<std::vector<Grid2>> noneTiles(_liberties.size());
 		for (int y = 0; y < GetDimensions().Y(); ++y) {
 			for (int x = 0; x < GetDimensions().X(); ++x) {
 				if (GetTile(Grid2(x, y)) == Color::White) {
 					++whiteTiles;
 				} else if (GetTile(Grid2(x, y)) == Color::Black) {
 					++blackTiles;
+				} else {
+					noneTiles[_groups[x][y]].emplace_back(x, y);
 				}
 			}
+		}
+		// Now to handle blank groups. If that group is surrounded exclusively by one color
+		// then it belongs to that group. Otherwise it is not counted.
+		int i = 0;
+		for (const auto& group : noneTiles) {
+			if (group.size() > 0) {
+				bool seenWhite = false;
+				bool seenBlack = false;
+				for (const Grid2& b : group) {
+					Neighbors(b, [this, &seenWhite, &seenBlack](const Grid2& g) {
+						seenBlack |= (GetTile(g) == Color::Black);
+						seenWhite |= (GetTile(g) == Color::White);
+					});
+					if (seenWhite && seenBlack) {
+						break;
+					}
+				}
+				if (seenWhite && !seenBlack) {
+					whiteTiles += group.size();
+				} else if (seenBlack && !seenWhite) {
+					blackTiles += group.size();
+				} else {
+				}
+			}
+			++i;
 		}
 		return whiteTiles - blackTiles + GetKomi();
 	}

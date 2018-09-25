@@ -14,7 +14,7 @@ namespace BeitaGo {
 
 	Grid2 MonteCarloAIPlayer::MakeDecision() const {
 		MonteCarloTree tree(GetEngine().GetBoard());
-		std::chrono::high_resolution_clock::time_point endTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(30);
+		std::chrono::high_resolution_clock::time_point endTime = std::chrono::high_resolution_clock::now() + std::chrono::seconds(10);
 		tree.InitializeNodes(5);
 		tree.RunSimulations(endTime);
 		return tree.GetMostLikelyMove();

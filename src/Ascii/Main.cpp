@@ -64,6 +64,7 @@ void PrintBoard(const Board& board) {
 		std::cout << "-";
 	}
 	std::cout << "+\n";
+	std::cout << "Score: " << board.Score() << "\n";
 }
 
 Grid2 AskForHumanMove() {
