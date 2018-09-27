@@ -54,6 +54,10 @@ add_test(NAME BeitaGoTestingStuff COMMAND BeitaGoTest)
 add_executable(BeitaGoGTP src/GTP/Main.cpp src/GTP/GTPEngine.h src/GTP/GTPEngine.cpp)
 target_link_libraries(BeitaGoGTP BeitaGoEngine)
 
+add_executable(BeitaGoGuessTheMove src/DeepLearning/GuessTheMove/Main.cpp)
+target_include_directories(BeitaGoGuessTheMove PRIVATE ${DLIB_DIR})
+target_link_libraries(BeitaGoGuessTheMove BeitaGoEngine dlib)
+
 add_executable(TestDLIB test/TestDLIB.cpp)
 target_include_directories(TestDLIB PRIVATE ${DLIB_DIR})
 target_link_libraries(TestDLIB dlib)

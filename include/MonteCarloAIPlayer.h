@@ -38,7 +38,12 @@ namespace BeitaGo {
 		 * layers used per turn to represent all the white tiles and black tiles. An extra layer is necessary to
 		 * indicate whose turn it currently is.
 		 */
-		static constexpr int INPUT_VECTOR_SIZE = EXPECTED_BOARD_SIZE * EXPECTED_BOARD_SIZE * (2 * HISTORY_USED) + 1; //! Obviously needs history.
+		static constexpr int INPUT_VECTOR_SIZE = EXPECTED_BOARD_SIZE * EXPECTED_BOARD_SIZE * (2 * HISTORY_USED + 1); //! Obviously needs history.
+
+		/**
+		 * The network represents the output as just 
+		 */
+		static constexpr int OUTPUT_VECTOR_SIZE = EXPECTED_BOARD_SIZE * EXPECTED_BOARD_SIZE + 1;
 
 		/**
 		 * Converts the current board state into an input vector for the network.
