@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <chrono>
 
 #include "AIPlayer.h"
 
@@ -13,6 +14,7 @@ namespace BeitaGo {
 	class MonteCarloAIPlayer : public AIPlayer {
 		public:
 		MonteCarloAIPlayer(Engine& engine, Color color);
+		MonteCarloAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime);
 		~MonteCarloAIPlayer();
 
 		/**
@@ -51,7 +53,13 @@ namespace BeitaGo {
 		 */
 		std::array<bool, INPUT_VECTOR_SIZE> BoardToInputVector() const;
 
+		/**
+		 * Sets the amount of time this AI can take to make its move.
+		 */
+		void SetThinkingTime(const std::chrono::duration<double>& thinkingTime);
+
 		private:
+		std::chrono::duration<double> _thinkingTime;
 	};
 }
 

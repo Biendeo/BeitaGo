@@ -1,10 +1,22 @@
 #include <iostream>
+#include <string>
 
 #include "GTPEngine.h"
 
 int main(int argc, char* argv[]) {
-	GTPEngine e;
-	e.Start();
+	double thinkingTime = 0.0;
+	for (int i = 1; i < argc; ++i) {
+		if (std::string(argv[1]) == "-t") {
+			thinkingTime = std::stod(argv[2]);
+		}
+	}
+	if (thinkingTime <= 0.0) {
+		GTPEngine e;
+		e.Start();
+	} else {
+		GTPEngine e(thinkingTime);
+		e.Start();
+	}
 
 	return 0;
 }

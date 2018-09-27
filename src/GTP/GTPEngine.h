@@ -11,6 +11,7 @@ class GTPEngine {
 	public:
 
 	GTPEngine();
+	GTPEngine(double thinkingTime);
 	~GTPEngine();
 
 	void Start();
@@ -130,6 +131,7 @@ class GTPEngine {
 
 	bool _exiting;
 	BeitaGo::Engine _engine;
+	double _thinkingTime;
 
 	void PrintSplashMessage() const;
 	void MainLoop();
@@ -160,6 +162,7 @@ class GTPEngine {
 	std::string Version() const;
 
 	void PrintBoard() const;
+	void RestartBoard(const BeitaGo::Grid2& dimensions);
 
 	static std::vector<std::string> Tokenize(const std::string& str);
 	static CommandType StrToCommandType(const std::string& str);

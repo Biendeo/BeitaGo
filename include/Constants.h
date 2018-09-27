@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 
 #include "Grid2.h"
@@ -19,4 +20,9 @@ namespace BeitaGo {
 	* ActDecision.
 	*/
 	const Grid2 PASS = Grid2(-6723, -2356);
+
+	/**
+	 * A default amount of time for a MCTS AI to use.
+	 */
+	const std::chrono::duration<double> DEFAULT_THINKING_TIME = std::chrono::duration<double>(20.0);
 };

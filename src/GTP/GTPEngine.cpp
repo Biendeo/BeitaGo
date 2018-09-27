@@ -1,6 +1,7 @@
 #include "GTPEngine.h"
 
 #include <array>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -8,8 +9,10 @@
 #include "DumbAIPlayer.h"
 #include "MonteCarloAIPlayer.h"
 
-GTPEngine::GTPEngine() {
-	_engine.NewGame(BeitaGo::Grid2(19, 19), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::White));
+GTPEngine::GTPEngine() : GTPEngine(BeitaGo::DEFAULT_THINKING_TIME.count()) {}
+
+GTPEngine::GTPEngine(double thinkingTime) : _thinkingTime(thinkingTime) {
+	RestartBoard(BeitaGo::Grid2(19, 19));
 }
 
 GTPEngine::~GTPEngine() {
@@ -168,7 +171,7 @@ void GTPEngine::BoardSize(int id, const std::vector<std::string>& arguments) {
 			if (size > MAX_SIZE) {
 				PrintFailureResponse(id, "unacceptable size");
 			} else {
-				_engine.NewGame(BeitaGo::Grid2(size, size), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::White));
+				RestartBoard(BeitaGo::Grid2(size, size));
 				PrintSuccessResponse(id, "");
 			}
 		} catch (std::exception& e) {
@@ -182,7 +185,7 @@ void GTPEngine::BoardSize(int id, const std::vector<std::string>& arguments) {
 }
 
 void GTPEngine::ClearBoard(int id, const std::vector<std::string>& arguments) {
-	_engine.NewGame(BeitaGo::Grid2(_engine.GetBoard().GetDimensions().X(), _engine.GetBoard().GetDimensions().Y()), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::Black), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::White));
+	RestartBoard(_engine.GetBoard().GetDimensions());
 	PrintSuccessResponse(id, "");
 }
 
@@ -349,6 +352,10 @@ void GTPEngine::PrintBoard() const {
 		}
 		std::cout << "\n";
 	}
+}
+
+void GTPEngine::RestartBoard(const BeitaGo::Grid2& dimensions) {
+	_engine.NewGame(dimensions, new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::Black, std::chrono::duration<double>(_thinkingTime)), new BeitaGo::MonteCarloAIPlayer(_engine, BeitaGo::Color::White, std::chrono::duration<double>(_thinkingTime)));
 }
 
 GTPEngine::CommandType GTPEngine::StrToCommandType(const std::string& str) {

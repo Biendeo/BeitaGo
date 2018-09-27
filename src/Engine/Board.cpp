@@ -175,9 +175,9 @@ namespace BeitaGo {
 					}
 				}
 				if (seenWhite && !seenBlack) {
-					whiteTiles += group.size();
+					whiteTiles += static_cast<int>(group.size());
 				} else if (seenBlack && !seenWhite) {
-					blackTiles += group.size();
+					blackTiles += static_cast<int>(group.size());
 				} else {
 				}
 			}
