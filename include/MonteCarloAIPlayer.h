@@ -19,7 +19,7 @@ namespace BeitaGo {
 		 * Returns the most ideal space for this AI to pick.
 		 * @return
 		 */
-		Grid2 MakeDecision() const override;
+		virtual Grid2 MakeDecision() const override;
 
 		/**
 		 * Sets the amount of time this AI can take to make its move.

@@ -1,5 +1,9 @@
 #include "MonteCarloAIPlayer.h"
 
+#include <array>
+
+#include "Board.h"
+
 namespace BeitaGo {
 	class DeepLearningAIPlayer : protected MonteCarloAIPlayer {
 		public:
@@ -42,5 +46,11 @@ namespace BeitaGo {
 		 * @return
 		 */
 		std::array<bool, INPUT_VECTOR_SIZE> BoardToInputVector() const;
+
+		/**
+		 * Converts a given board state into an input vector for the network.
+		 * @return
+		 */
+		static std::array<bool, INPUT_VECTOR_SIZE> BoardToInputVector(const Board& board);
 	};
 }

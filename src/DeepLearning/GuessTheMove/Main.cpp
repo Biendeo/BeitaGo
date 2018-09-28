@@ -10,6 +10,7 @@
 #include <dlib/dnn.h>
 #include <dlib/data_io.h>
 
+#include "DeepLearningAIPlayer.h"
 #include "Engine.h"
 #include "Grid2.h"
 #include "MonteCarloAIPlayer.h"
@@ -27,7 +28,7 @@ Engine SetupEngine() {
 	Engine e;
 	MonteCarloAIPlayer* player1 = new MonteCarloAIPlayer(e, Color::Black);
 	MonteCarloAIPlayer* player2 = new MonteCarloAIPlayer(e, Color::White);
-	e.NewGame(Grid2(MonteCarloAIPlayer::EXPECTED_BOARD_SIZE, MonteCarloAIPlayer::EXPECTED_BOARD_SIZE), player1, player2);
+	e.NewGame(Grid2(DeepLearningAIPlayer::EXPECTED_BOARD_SIZE, DeepLearningAIPlayer::EXPECTED_BOARD_SIZE), player1, player2);
 	return e;
 }
 
@@ -47,7 +48,7 @@ std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> 
 
 		std::ifstream dataIn(dataPath);
 		while (std::getline(dataIn, inputString)) {
-			dlib::matrix<unsigned char, MonteCarloAIPlayer::INPUT_VECTOR_SIZE, 1> mat;
+			dlib::matrix<unsigned char, DeepLearningAIPlayer::INPUT_VECTOR_SIZE, 1> mat;
 			for (int i = 0; i < inputString.size(); i += 2) {
 				mat(i / 2, 0) = inputString[i] == '1' ? 1 : 0;
 			}
@@ -67,7 +68,7 @@ std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> 
 	while (data.size() < size && labels.size() < size) {
 		std::cout << "Generating data: " << data.size() + 1 << "/" << size << "\n";
 		Engine e;
-		e.NewGame(Grid2(MonteCarloAIPlayer::EXPECTED_BOARD_SIZE, MonteCarloAIPlayer::EXPECTED_BOARD_SIZE), new MonteCarloAIPlayer(e, Color::Black), new MonteCarloAIPlayer(e, Color::White));
+		e.NewGame(Grid2(DeepLearningAIPlayer::EXPECTED_BOARD_SIZE, DeepLearningAIPlayer::EXPECTED_BOARD_SIZE), new MonteCarloAIPlayer(e, Color::Black), new MonteCarloAIPlayer(e, Color::White));
 
 		// Play a random number of random moves.
 		int randomNumberOfMoves = moveNumDistribution(randomEngine);
@@ -77,13 +78,13 @@ std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> 
 			e.GetCurrentPlayer().ActDecision(validMoves[validMoveDistribution(randomEngine)]);
 		}
 		// Now we've got the board. Let's get the board as an input vector.
-		auto inputVector = dynamic_cast<MonteCarloAIPlayer&>(e.GetCurrentPlayer()).BoardToInputVector();
+		auto inputVector = DeepLearningAIPlayer::BoardToInputVector(e.GetBoard());
 		// And let's predict the move that is generated from this move.
 		auto decidedMove = dynamic_cast<MonteCarloAIPlayer&>(e.GetCurrentPlayer()).MakeDecision();
-		unsigned long decidedMoveValue = decidedMove == PASS ? MonteCarloAIPlayer::OUTPUT_VECTOR_SIZE - 1 : decidedMove.X() * MonteCarloAIPlayer::EXPECTED_BOARD_SIZE + decidedMove.Y();
+		unsigned long decidedMoveValue = decidedMove == PASS ? DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE - 1 : decidedMove.X() * DeepLearningAIPlayer::EXPECTED_BOARD_SIZE + decidedMove.Y();
 
 		// Let's convert the input vector into a dlib matrix.
-		dlib::matrix<unsigned char, MonteCarloAIPlayer::INPUT_VECTOR_SIZE, 1> inMatrix;
+		dlib::matrix<unsigned char, DeepLearningAIPlayer::INPUT_VECTOR_SIZE, 1> inMatrix;
 		for (int r = 0; r < inputVector.size(); ++r) {
 			inMatrix(r, 0) = inputVector[r] ? 1 : 0;
 		}
@@ -124,7 +125,7 @@ int main(int argc, char* argv[]) {
 	auto training = GenerateData(TRAINING_SIZE, TRAINING_DATA_PATH, TRAINING_LABELS_PATH);
 	auto testing = GenerateData(TESTING_SIZE, TESTING_DATA_PATH, TESTING_LABELS_PATH);
 
-	using network_type = dlib::loss_multiclass_log<dlib::fc<MonteCarloAIPlayer::OUTPUT_VECTOR_SIZE, dlib::relu<dlib::fc<100, dlib::relu<dlib::input<dlib::matrix<unsigned char>>>>>>>;
+	using network_type = dlib::loss_multiclass_log<dlib::fc<DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE, dlib::relu<dlib::fc<100, dlib::relu<dlib::input<dlib::matrix<unsigned char>>>>>>>;
 
 	network_type net;
 	dlib::dnn_trainer<network_type> trainer(net);
