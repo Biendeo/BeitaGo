@@ -4,11 +4,10 @@
 #include <cmath>
 #include <iostream>
 #include <random>
-#include <vector>
 
 namespace BeitaGo {
 
-	MonteCarloTree::MonteCarloTree(const Board& board) : _board(board), _validMoves(board.GetValidMoves(board.GetWhoseTurn())), _totalWins(0), _totalSimulations(0) {
+	MonteCarloTree::MonteCarloTree(const Board& board) : _board(board), _validMoves(board.GetValidMoves(board.GetWhoseTurn())), _children(board.GetDimensions().X() * board.GetDimensions().Y() + 1), _totalWins(0), _totalSimulations(0) {
 		// When initialised, all children will be marked as invalid. Go through all the valid moves,
 		// and mark those as valid.
 		for (const Grid2& g : _validMoves) {
@@ -147,7 +146,7 @@ namespace BeitaGo {
 	}
 
 	int MonteCarloTree::PassIndex() const {
-		return MonteCarloAIPlayer::EXPECTED_BOARD_SIZE * MonteCarloAIPlayer::EXPECTED_BOARD_SIZE;
+		return static_cast<int>(_children.size() - 1);
 	}
 
 	int MonteCarloTree::Grid2ToIndex(const Grid2& g) const {

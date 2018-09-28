@@ -1,9 +1,9 @@
 #pragma once
 
-#include <array>
 #include <chrono>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include "Board.h"
 #include "Grid2.h"
@@ -55,7 +55,7 @@ namespace BeitaGo {
 
 		private:
 		Board _board;
-		std::array<MonteCarloNode, MonteCarloAIPlayer::EXPECTED_BOARD_SIZE * MonteCarloAIPlayer::EXPECTED_BOARD_SIZE + 1> _children;
+		std::vector<MonteCarloNode> _children;
 		int _totalWins;
 		int _totalSimulations;
 		std::mutex _lock;
