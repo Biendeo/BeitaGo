@@ -139,6 +139,20 @@ int main(int argc, char* argv[]) {
 	net.clean();
 	dlib::serialize("GuessTheMove_net.dat") << net;
 	
-	std::vector<unsigned long> predictedLabels = net(training.first);
+	std::vector<unsigned long> predictedLabels = net(training.second);
+
+	int correct = 0;
+	int wrong = 0;
+	for (int i = 0; i < predictedLabels.size(); ++i) {
+		if (predictedLabels[i] == testing.second[i]) {
+			++correct;
+		} else {
+			++wrong;
+		}
+	}
+
+	std::cout << "The network guessed " << correct << " of " << (correct + wrong) << " labels!\n";
+
+	return 0;
 	
 }
