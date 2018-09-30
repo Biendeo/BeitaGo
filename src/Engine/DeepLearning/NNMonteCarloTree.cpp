@@ -59,7 +59,7 @@ namespace BeitaGo {
 		return MonteCarloTree::GetMostLikelyMove();
 	}
 
-	double NNMonteCarloTree::GetHeuristicValue(const Grid2& g, bool checkIfValid) const {
+	double NNMonteCarloTree::GetHeuristicValue(const Grid2& g, bool checkIfValid) {
 		if (checkIfValid) {
 			bool moveFound = false;
 			for (const Grid2& o : _validMoves) {
@@ -74,21 +74,22 @@ namespace BeitaGo {
 		}
 
 		const MonteCarloNode& node = _children[Grid2ToIndex(g)];
-		std::vector<dlib::matrix<unsigned char, DeepLearningAIPlayer::INPUT_VECTOR_SIZE, 1>> inputVector(1);
-		inputVector[0] = DeepLearningAIPlayer::BoardToDlibMatrix(_board);
-		//TODO: Add this part, I can't seem to do it without compiler errors.
-		//std::vector<unsigned long> results = _network(inputVector);
-		return 0 + DeepLearningAIPlayer::c * (1 / (1.0 + node.TotalSimulations()));
+		std::vector<dlib::matrix<unsigned char>> inputVector;
+		inputVector.push_back(DeepLearningAIPlayer::BoardToDlibMatrix(_board));
+		//TODO: Ideally I want the probability network here...how do I do that...?
+		std::vector<unsigned long> results = _network(inputVector);
+		return node.TotalWins() / (1.0 + node.TotalSimulations()) + DeepLearningAIPlayer::c * std::sqrt(std::log(_totalSimulations) / (1.0 + node.TotalSimulations()));
+
 	}
 	
-	std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> NNMonteCarloTree::GetAllHeuristicValues() const {
+	std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> NNMonteCarloTree::GetAllHeuristicValues() {
 		std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> arr{0.0};
 		for (const Grid2& g : _validMoves) {
 			arr[Grid2ToIndex(g)] = GetHeuristicValue(g, false);
 		}
 		return arr;
 	}
-	std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> NNMonteCarloTree::GetAllHeuristicValuesNormalised() const {
+	std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> NNMonteCarloTree::GetAllHeuristicValuesNormalised() {
 		auto arr = GetAllHeuristicValues();
 		double total = 0.0;
 		for (const double& d : arr) {
@@ -98,5 +99,9 @@ namespace BeitaGo {
 			d /= total;
 		}
 		return arr;
+	}
+
+	int NNMonteCarloTree::GetTotalSimulations() const {
+		return _totalSimulations;
 	}
 }

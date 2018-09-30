@@ -46,18 +46,23 @@ namespace BeitaGo {
 		/**
 		 * Returns the value returned by the heuristic for the given move.
 		 */
-		double GetHeuristicValue(const Grid2& g, bool checkIfValid = true) const;
+		double GetHeuristicValue(const Grid2& g, bool checkIfValid = true);
 
 		/**
 		 * Returns the value returned by the heuristic for every move.
 		 */
-		std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> GetAllHeuristicValues() const;
+		std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> GetAllHeuristicValues();
 
 		/**
 		 * Returns the value returned by the heuristic for every move, normalised so they all sum up
 		 * to 1.
 		 */
-		std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> GetAllHeuristicValuesNormalised() const;
+		std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> GetAllHeuristicValuesNormalised();
+
+		/**
+		 * Returns the total number of simulations this tree has run.
+		 */
+		int GetTotalSimulations() const;
 
 		private:
 		DeepLearningAIPlayer::NetworkType _network;
