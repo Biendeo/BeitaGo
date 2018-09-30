@@ -25,7 +25,7 @@ namespace BeitaGo {
 	Grid2 DeepLearningAIPlayer::MakeDecision() const {
 		NNMonteCarloTree tree(GetEngine().GetBoard(), _network);
 		std::chrono::high_resolution_clock::time_point endTime = std::chrono::high_resolution_clock::now() + std::chrono::duration_cast<std::chrono::seconds>(_thinkingTime);
-		tree.InitializeNodes(5);
+		//tree.InitializeNodes(1);
 		tree.RunSimulations(endTime);
 		_heuristicValues = tree.GetAllHeuristicValuesNormalised();
 		return tree.GetMostLikelyMove();
@@ -45,15 +45,15 @@ namespace BeitaGo {
 						if (i == 0) {
 							inputVector[index] = board.GetTile(Grid2(x, y)) == Color::Black;
 						} else {
-							Board historyBoard = board.GetPreviousState(i / 2);
-							inputVector[index] = historyBoard.GetTile(Grid2(x, y)) == Color::Black;
+							std::vector<std::vector<Color>> historyBoard = board.GetPreviousLayout(i / 2);
+							inputVector[index] = historyBoard[x][y] == Color::Black;
 						}
 					} else {
 						if (i == 0) {
 							inputVector[index] = board.GetTile(Grid2(x, y)) == Color::White;
 						} else {
-							Board historyBoard = board.GetPreviousState(i / 2);
-							inputVector[index] = historyBoard.GetTile(Grid2(x, y)) == Color::White;
+							std::vector<std::vector<Color>> historyBoard = board.GetPreviousLayout(i / 2);
+							inputVector[index] = historyBoard[x][y] == Color::White;
 						}
 					}
 					++index;

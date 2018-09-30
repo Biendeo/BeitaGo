@@ -43,6 +43,7 @@ namespace BeitaGo {
 
 	void Board::PlacePiece(const Grid2& position, Color color) {
 		if (IsMoveValid(position, color)) {
+			_lastMoves.push_back(_tiles);
 			if (position != PASS) {
 				_tiles[position.X()][position.Y()] = color;
 			}
@@ -241,13 +242,20 @@ namespace BeitaGo {
 		}
 		Board newBoard(GetDimensions());
 		if (numTurns < _history.size()) {
-
 			for (auto it = _history.begin(); it != _history.begin() + (_history.size() - numTurns); ++it) {
 				newBoard.PlacePiece(it->GetPosition(), it->GetColor());
 				newBoard.NextTurn();
 			}
 		}
 		return newBoard;
+	}
+
+	std::vector<std::vector<Color>> Board::GetPreviousLayout(int numTurns) const {
+		if (numTurns <= 0 || numTurns >= _lastMoves.size()) {
+			return _tiles;
+		} else {
+			return _lastMoves[_lastMoves.size() - numTurns - 1];
+		}
 	}
 
 	std::vector<MoveHistoryEntry> Board::GetHistory() const {

@@ -117,11 +117,11 @@ namespace BeitaGo {
 		 */
 		double ScoreArea() const;
 
-			/**
-			 * Returns how many liberties a tile has, or -1 if the tile is None or off the board.
-			 * @param position
-			 * @return
-			 */
+		/**
+			* Returns how many liberties a tile has, or -1 if the tile is None or off the board.
+			* @param position
+			* @return
+			*/
 		int GetLiberties(const Grid2& position) const;
 
 		/**
@@ -154,6 +154,13 @@ namespace BeitaGo {
 		 * This is identical to copying the board and rewinding it.
 		 */
 		Board GetPreviousState(int numTurns) const;
+
+		/**
+		 * Returns a board layout that has been rewinded a certain number of moves.
+		 * Unlike the other function, this function doesn't copy any other details, which is useful
+		 * for creating screens for the history. This is in [x][y] format.
+		 */
+		std::vector<std::vector<Color>> GetPreviousLayout(int numTurns) const;
 
 		/**
 		 * Returns the history of all the moves played by the game.
@@ -193,6 +200,7 @@ namespace BeitaGo {
 		std::vector<std::vector<int>> _groups;
 		std::vector<int> _liberties;
 		std::vector<MoveHistoryEntry> _history;
+		std::vector<std::vector<std::vector<Color>>> _lastMoves;
 
 		Color _whoseTurn;
 		int _blackPiecesTaken;
