@@ -40,7 +40,9 @@ std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> 
 	randomEngine.seed(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 	std::uniform_int_distribution<int> moveNumDistribution(0, 50);
 
-	if (std::experimental::filesystem::exists(dataPath) && std::experimental::filesystem::exists(labelsPath)) {
+	std::ifstream dataIn(dataPath), labelsIn(labelsPath);
+
+	if (dataIn && labelsIn) {
 		// Data is serialised as a csv of 1s and 0s (1 if true, 0 if false). Commas separate the 
 		// individual fields and newlines separate the overall vectors.
 		// Labels are serialised as a csv of just the ints (which is just each int on their own line).

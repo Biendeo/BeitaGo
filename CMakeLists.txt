@@ -32,7 +32,11 @@ message("BeitaGo: Making projects")
 # All projects will use this include directory. It should hold files made public by the engine.
 include_directories(./include)
 
-add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h src/Engine/MoveHistoryEntry.cpp include/MoveHistoryEntry.h src/Engine/MonteCarloAIPlayer.cpp include/MonteCarloAIPlayer.h src/Engine/DeepLearning/MonteCarloTree.cpp src/Engine/DeepLearning/MonteCarloTree.h src/Engine/DeepLearning/MonteCarloNode.cpp src/Engine/DeepLearning/MonteCarloNode.h src/Engine/DeepLearningAIPlayer.cpp include/DeepLearningAIPlayer.h)
+add_library(BeitaGoEngine SHARED src/Engine/Engine.cpp include/Engine.h src/Engine/Player.cpp include/Player.h include/Constants.h src/Engine/HumanPlayer.cpp include/HumanPlayer.h include/Grid2.h src/Engine/Grid2.cpp src/Engine/Board.cpp include/Board.h src/Engine/AIPlayer.cpp include/AIPlayer.h src/Engine/DumbAIPlayer.cpp include/DumbAIPlayer.h src/Engine/MoveHistoryEntry.cpp include/MoveHistoryEntry.h src/Engine/MonteCarloAIPlayer.cpp include/MonteCarloAIPlayer.h src/Engine/DeepLearning/MonteCarloTree.cpp src/Engine/DeepLearning/MonteCarloTree.h src/Engine/DeepLearning/MonteCarloNode.cpp src/Engine/DeepLearning/MonteCarloNode.h src/Engine/DeepLearningAIPlayer.cpp include/DeepLearningAIPlayer.h src/Engine/DeepLearning/NNMonteCarloTree.cpp src/Engine/DeepLearning/NNMonteCarloTree.h)
+
+
+target_include_directories(BeitaGoEngine PRIVATE ${DLIB_DIR})
+target_link_libraries(BeitaGoEngine dlib)
 
 if(BEITAGO__QT)
     add_executable(BeitaGoQt src/View/Main.cpp ui/MainWindow.cpp ui/MainWindow.h ui/MainWindow.ui ui/BoardView.cpp ui/BoardView.h)
@@ -57,6 +61,10 @@ target_link_libraries(BeitaGoGTP BeitaGoEngine)
 add_executable(BeitaGoGuessTheMove src/DeepLearning/GuessTheMove/Main.cpp)
 target_include_directories(BeitaGoGuessTheMove PRIVATE ${DLIB_DIR})
 target_link_libraries(BeitaGoGuessTheMove BeitaGoEngine dlib)
+
+add_executable(BeitaGoTraining src/DeepLearning/NetworkTraining/Main.cpp)
+target_include_directories(BeitaGoTraining PRIVATE ${DLIB_DIR})
+target_link_libraries(BeitaGoTraining BeitaGoEngine dlib)
 
 add_executable(TestDLIB test/TestDLIB.cpp)
 target_include_directories(TestDLIB PRIVATE ${DLIB_DIR})

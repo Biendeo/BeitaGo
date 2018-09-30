@@ -25,35 +25,35 @@ namespace BeitaGo {
 		/**
 		 * Runs an iteration of the Monte Carlo Tree Search.
 		 */
-		void RunSimulation();
+		virtual void RunSimulation();
 
 		/**
 		 * To set up the nodes, we run a fixed number of initial simulations on each one.
 		 * @param maxThreads
 		 */
-		void InitializeNodes(int n, int maxThreads = std::thread::hardware_concurrency());
+		virtual void InitializeNodes(int n, int maxThreads = std::thread::hardware_concurrency());
 
 		/**
 		 * Runs n iterations of the Monte Carlo Tree Search spread among a given number of threads.
 		 * @param n
 		 * @param maxThreads
 		 */
-		void RunSimulations(int n, int maxThreads = std::thread::hardware_concurrency());
+		virtual void RunSimulations(int n, int maxThreads = std::thread::hardware_concurrency());
 
 		/**
 		 * Runs as many iterations of the Monte Carlo Tree Search until the time is reached.
 		 * @param n
 		 * @param maxThreads
 		 */
-		void RunSimulations(const std::chrono::high_resolution_clock::time_point& endTime, int maxThreads = std::thread::hardware_concurrency());
+		virtual void RunSimulations(const std::chrono::high_resolution_clock::time_point& endTime, int maxThreads = std::thread::hardware_concurrency());
 
 		/**
 		 * Returns the move that was computed to have the best likelihood of victory.
 		 * @return
 		 */
-		Grid2 GetMostLikelyMove() const;
+		virtual Grid2 GetMostLikelyMove() const;
 
-		private:
+		protected:
 		Board _board;
 		std::vector<MonteCarloNode> _children;
 		int _totalWins;
