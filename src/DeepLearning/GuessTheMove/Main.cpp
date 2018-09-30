@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 	net.clean();
 	dlib::serialize("GuessTheMove_net.dat") << net;
 	
-	std::vector<unsigned long> predictedLabels = net(training.second);
+	std::vector<unsigned long> predictedLabels = net(testing.first);
 
 	int correct = 0;
 	int wrong = 0;
