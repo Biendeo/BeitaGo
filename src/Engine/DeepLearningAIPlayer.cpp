@@ -9,16 +9,16 @@
 namespace BeitaGo {
 	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color) : DeepLearningAIPlayer(engine, color, DEFAULT_THINKING_TIME) {}
 
-	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime) : MonteCarloAIPlayer(engine, color, thinkingTime), _heuristicValues{0.0} {}
+	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime) : MonteCarloAIPlayer(engine, color, thinkingTime), _heuristicValues{0.0}, _totalSimulations(0) {}
 
-	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime, const std::string& networkFilePath) : MonteCarloAIPlayer(engine, color, thinkingTime), _heuristicValues{0.0} {
+	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime, const std::string& networkFilePath) : MonteCarloAIPlayer(engine, color, thinkingTime), _heuristicValues{0.0}, _totalSimulations(0) {
 		std::ifstream fin(networkFilePath, std::ios::binary);
 		if (fin) {
 			dlib::deserialize(_network, fin);
 		}
 	}
 
-	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime, DeepLearningAIPlayer::NetworkType& network) : MonteCarloAIPlayer(engine, color, thinkingTime), _network(network), _heuristicValues{0.0} {}
+	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime, DeepLearningAIPlayer::NetworkType& network) : MonteCarloAIPlayer(engine, color, thinkingTime), _network(network), _heuristicValues{0.0}, _totalSimulations(0) {}
 
 	DeepLearningAIPlayer::~DeepLearningAIPlayer() {}
 
@@ -28,6 +28,7 @@ namespace BeitaGo {
 		//tree.InitializeNodes(1);
 		tree.RunSimulations(endTime);
 		_heuristicValues = tree.GetAllHeuristicValuesNormalised();
+		_totalSimulations = tree.GetTotalSimulations();
 		return tree.GetMostLikelyMove();
 	}
 	
@@ -84,5 +85,9 @@ namespace BeitaGo {
 
 	std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> DeepLearningAIPlayer::GetAllHeuristicValues() const {
 		return _heuristicValues;
+	}
+
+	int DeepLearningAIPlayer::GetTotalSimulations() const {
+		return _totalSimulations;
 	}
 }

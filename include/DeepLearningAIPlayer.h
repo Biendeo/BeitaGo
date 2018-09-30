@@ -84,8 +84,14 @@ namespace BeitaGo {
 		 */
 		std::array<double, OUTPUT_VECTOR_SIZE> GetAllHeuristicValues() const;
 
+		/**
+		 * Returns the total number of simulations run by the last run of tthe MakeDecision() call.
+		 */
+		int GetTotalSimulations() const;
+
 		private:
 		NetworkType _network;
 		mutable std::array<double, OUTPUT_VECTOR_SIZE> _heuristicValues;
+		mutable int _totalSimulations;
 	};
 }

@@ -69,6 +69,8 @@ std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> 
 			p.first.push_back(DeepLearningAIPlayer::BoardToDlibMatrix(e.GetBoard()));
 			p.second.push_back(chosenMove == PASS ? DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE - 1 : chosenMove.X() * DeepLearningAIPlayer::EXPECTED_BOARD_SIZE + chosenMove.Y());
 			player.ActDecision(chosenMove);
+			
+			std::cout << "      Ran " << player.GetTotalSimulations() << " simulations\n";
 		}
 		SerializeMoves(p, CURRENT_TRAINING_GAMES_PATH);
 	}
