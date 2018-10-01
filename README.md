@@ -34,14 +34,14 @@ These are all the features that I intend to make:
 - [x] Board state
 - [x] Player interaction
 - [x] Undo/redo history
-- [ ] Scoring and win state
+- [x] Scoring and win state
 - [ ] Handicap
 - [x] AI
 
 ### AI
 - [x] Place tiles on the board
 - [x] Manage game state
-- [ ] Deep learning training
+- [x] Deep learning training
 - [ ] Playing at a higher level
 - [x] Knowing when to pass/resign
 
