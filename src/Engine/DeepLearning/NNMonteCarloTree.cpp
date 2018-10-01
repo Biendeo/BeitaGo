@@ -74,10 +74,10 @@ namespace BeitaGo {
 		}
 
 		const MonteCarloNode& node = _children[Grid2ToIndex(g)];
-		std::vector<dlib::matrix<unsigned char>> inputVector;
-		inputVector.push_back(DeepLearningAIPlayer::BoardToDlibMatrix(_board));
+		//std::vector<dlib::matrix<unsigned char>> inputVector;
+		//inputVector.push_back(DeepLearningAIPlayer::BoardToDlibMatrix(_board));
 		//TODO: Ideally I want the probability network here...how do I do that...?
-		std::vector<unsigned long> results = _network(inputVector);
+		//std::vector<unsigned long> results = _network(inputVector);
 		return node.TotalWins() / (1.0 + node.TotalSimulations()) + DeepLearningAIPlayer::c * std::sqrt(std::log(_totalSimulations) / (1.0 + node.TotalSimulations()));
 
 	}
