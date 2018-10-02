@@ -18,9 +18,7 @@ namespace BeitaGo {
 	}
 
 	void Player::ActDecision(const Grid2& move) {
-		if (move != PASS) {
-			GetEngine().GetBoard().PlacePiece(move, GetColor());
-		}
+		GetEngine().GetBoard().PlacePiece(move, GetColor());
 		GetEngine().GetBoard().NextTurn();
 	}
 
