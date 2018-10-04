@@ -66,5 +66,6 @@ namespace BeitaGo {
 
 		private:
 		DeepLearningAIPlayer::NetworkType _network;
+		std::array<double, DeepLearningAIPlayer::OUTPUT_VECTOR_SIZE> _networkValues;
 	};
 }
