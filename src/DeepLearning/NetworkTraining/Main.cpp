@@ -16,7 +16,7 @@
 
 using namespace BeitaGo;
 
-const std::chrono::duration<double> TRAINING_TIME = std::chrono::duration<double>(10.0);
+const std::chrono::duration<double> TRAINING_TIME = std::chrono::duration<double>(1.0);
 const std::chrono::duration<double> MATCH_TIME = std::chrono::duration<double>(5.0);
 
 const std::string CURRENT_NETWORK_PATH = "BeitaGo_network.dat";
@@ -24,12 +24,13 @@ const std::string CURRENT_TRAINING_GAMES_PATH = "BeitaGo_training_games.dat";
 const std::string NEW_NETWORK_PATH = "BeitaGo_newnetwork.dat";
 const std::string NEW_NETWORK_SYNC_PATH = "BeitaGo_newnetwork_sync";
 
-void SerializeMoves(const std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>>& moves, const std::string& filePath) {
+void SerializeMoves(const std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>>& moves, int gamesDone, const std::string& filePath) {
 	std::ofstream outputFile(filePath);
 
+	outputFile << gamesDone << "\n";
 	for (int i = 0; i < moves.first.size(); ++i) {
 		for (int r = 0; r < DeepLearningAIPlayer::INPUT_VECTOR_SIZE; ++r) {
-			outputFile << moves.first[i](r, 0) << ",";
+			outputFile << static_cast<char>(moves.first[i](r, 0) + '0') << ",";
 		}
 		outputFile << moves.second[i] << "\n";
 	}
@@ -37,12 +38,14 @@ void SerializeMoves(const std::pair<std::vector<dlib::matrix<unsigned char>>, st
 	outputFile.close();
 }
 
-std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> DeserializeMoves(const std::string& filePath) {
+std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> DeserializeMoves(int& gamesDone, const std::string& filePath) {
 	std::vector<dlib::matrix<unsigned char>> boardPositions;
 	std::vector<unsigned long> labels;
 	std::ifstream inputFile(filePath);
 	if (inputFile) {
 		std::string currentLine;
+		std::getline(inputFile, currentLine);
+		gamesDone = std::stoi(currentLine);
 		while (std::getline(inputFile, currentLine)) {
 			boardPositions.push_back(dlib::matrix<unsigned char, DeepLearningAIPlayer::INPUT_VECTOR_SIZE, 1>());
 			for (int i = 0; i < DeepLearningAIPlayer::INPUT_VECTOR_SIZE; ++i) {
@@ -56,8 +59,9 @@ std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> 
 
 std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> GenerateMoves(int numberOfMatches, DeepLearningAIPlayer::NetworkType& network) {
 	Engine e;
-	auto p = DeserializeMoves(CURRENT_TRAINING_GAMES_PATH);
-	for (int i = p.first.size(); i < numberOfMatches; ++i) {
+	int gamesDone = 0;
+	auto p = DeserializeMoves(gamesDone, CURRENT_TRAINING_GAMES_PATH);
+	for (int i = gamesDone; i < numberOfMatches; ++i) {
 		std::cout << "  Game: " << (i + 1) << " / " << numberOfMatches << "\n";
 		e.NewGame(Grid2(DeepLearningAIPlayer::EXPECTED_BOARD_SIZE), new DeepLearningAIPlayer(e, Color::Black, TRAINING_TIME, network), new DeepLearningAIPlayer(e, Color::White, TRAINING_TIME, network));
 		while (!e.GetBoard().IsGameOver()) {
@@ -71,7 +75,8 @@ std::pair<std::vector<dlib::matrix<unsigned char>>, std::vector<unsigned long>> 
 			
 			std::cout << "      Ran " << player.GetTotalSimulations() << " simulations\n";
 		}
-		SerializeMoves(p, CURRENT_TRAINING_GAMES_PATH);
+		++gamesDone;
+		SerializeMoves(p, gamesDone, CURRENT_TRAINING_GAMES_PATH);
 	}
 	return p;
 }
