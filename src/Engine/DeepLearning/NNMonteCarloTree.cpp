@@ -5,12 +5,15 @@
 
 namespace BeitaGo {
 	NNMonteCarloTree::NNMonteCarloTree(const Board& board, DeepLearningAIPlayer::NetworkType network) : MonteCarloTree(board), _network(network), _networkValues{0.0} {
-
 		std::vector<dlib::matrix<unsigned char>> inputVector;
 		inputVector.push_back(DeepLearningAIPlayer::BoardToDlibMatrix(_board));
 		//TODO: Ideally I want the probability network here...how do I do that...?
 		std::vector<unsigned long> results = _network(inputVector);
 		_networkValues[results[0]] = 1.0;
+	}
+
+	NNMonteCarloTree::~NNMonteCarloTree() {
+		_network.clean();
 	}
 
 	void NNMonteCarloTree::RunSimulation() {

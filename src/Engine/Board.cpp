@@ -10,9 +10,8 @@
 #include <iostream>
 
 namespace BeitaGo {
-	Board::Board(const Grid2& dimensions) : _dimensions(dimensions) {
+	Board::Board(const Grid2& dimensions) : _dimensions(dimensions), _groups{dimensions.Y(), std::vector<int>(dimensions.X(), -1)}, _liberties(dimensions.X() * dimensions.Y(), -1) {
 		_tiles = std::vector<std::vector<Color>>(dimensions.X(), std::vector<Color>(dimensions.Y(), Color::None));
-		RecomputeGroupsAndLiberties();
 		_whoseTurn = Color::Black;
 		_blackPiecesTaken = 0;
 		_whitePiecesTaken = 0;
@@ -46,40 +45,161 @@ namespace BeitaGo {
 			_lastMoves.push_back(_tiles);
 			if (position != PASS) {
 				_tiles[position.X()][position.Y()] = color;
-			}
-			_history.emplace_back(position, color);
-			// When placing a piece, only the neighbouring tiles' liberties are changed, so you
-			// only need to check whether those should be removed.
-			if (position != PASS) {
-				//TODO: Can I do this smoother?
-				RecomputeGroupsAndLiberties();
-				auto piecesTakenLast = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
-				auto piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
+				// Compute the number of liberties and neighbouring friendly tiles.
+				int additionalLiberties = 0;
+				int neighbouringFriendlies = 0;
 				Neighbors(position, [&](const Grid2& g) {
-					if (GetTile(g) == (color == Color::Black ? Color::White : Color::Black)) {
-						ClearPossibleTiles(g);
-						piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
-						if (piecesTakenLast != piecesTakenCurrent) {
-							RecomputeGroupsAndLiberties();
-							piecesTakenLast = piecesTakenCurrent;
+					if (GetTile(g) == Color::None) {
+						++additionalLiberties;
+					} else if (GetTile(g) == color) {
+						++neighbouringFriendlies;
+					}
+				});
+
+				// Compute groups.
+				int foundGroup = -1;
+				Neighbors(position, [&](const Grid2& g) {
+					if (GetTile(g) == color) {
+						if (foundGroup == -1) {
+							// If we haven't yet found a neighbouring group, then let's take their
+							// group number. We can add the number of liberties of our tile to
+							// theirs (minus one because the tile itself takes a liberty).
+							foundGroup = _groups[g.X()][g.Y()];
+							_groups[position.X()][position.Y()] = foundGroup;
+							--additionalLiberties;
+							_liberties[foundGroup] += additionalLiberties;
+						} else if (_groups[g.X()][g.Y()] != foundGroup) {
+							// If we have found a group before AND this one is of a different group
+							// then we need to clear that group.
+							int groupToClear = _groups[g.X()][g.Y()];
+							int oldGroupLiberties = _liberties[groupToClear];
+							for (int x = 0; x < GetDimensions().X(); ++x) {
+								for (int y = 0; y < GetDimensions().Y(); ++y) {
+									if (_groups[x][y] == groupToClear) {
+										_groups[x][y] = foundGroup;
+									}
+								}
+							}
+							_liberties[foundGroup] += (oldGroupLiberties - 1);
+							_liberties[groupToClear] = -1;
+						} else {
+							// If we have found a group before AND this is the same group, then we
+							// cleared a liberty twice.
+							--_liberties[foundGroup];
+						}
+					} else if (GetTile(g) == (color == Color::Black ? Color::White : Color::Black)) {
+						// If the neighbouring tile is of another colour, their group will go down
+						// by one liberty.
+						int groupToSubtract = _groups[g.X()][g.Y()];
+						--_liberties[groupToSubtract];
+						// If their liberties is now zero
+						if (_liberties[groupToSubtract] == 0) {
+							int& points = (color == Color::Black ? _blackPiecesTaken : _whitePiecesTaken);
+							for (int x = 0; x < GetDimensions().X(); ++x) {
+								for (int y = 0; y < GetDimensions().Y(); ++y) {
+									if (_groups[x][y] == groupToSubtract) {
+										_tiles[x][y] = Color::None;
+										_groups[x][y] = -1;
+										++points;
+										Neighbors(Grid2(x, y), [this, groupToSubtract, &additionalLiberties, &position](const Grid2& g) {
+											if (_groups[g.X()][g.Y()] != -1 && _groups[g.X()][g.Y()] != groupToSubtract) {
+												++_liberties[_groups[g.X()][g.Y()]];
+											} else if (g == position) {
+												++additionalLiberties;
+											}
+										});
+									}
+								}
+							}
+							_liberties[groupToSubtract] = -1;
 						}
 					}
 				});
-				// If none of the other tiles were removed, this move could've been a suicide play,
-				// so remove this group if it has zero liberties. It should only have zero liberties
-				// if any of the other groups were not removed.
-				piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
-				if (piecesTakenLast != piecesTakenCurrent) {
-					RecomputeGroupsAndLiberties();
-					piecesTakenLast = piecesTakenCurrent;
+
+				if (foundGroup == -1) {
+					for (int a = 0; a < _liberties.size(); ++a) {
+						if (_liberties[a] == -1) {
+							foundGroup = a;
+							break;
+						}
+					}
+					_groups[position.X()][position.Y()] = foundGroup;
+					_liberties[foundGroup] = additionalLiberties;
 				}
-				ClearPossibleTiles(position);
-				piecesTakenCurrent = std::make_pair(GetBlackPiecesTaken(), GetWhitePiecesTaken());
-				if (piecesTakenLast != piecesTakenCurrent) {
-					RecomputeGroupsAndLiberties();
-					piecesTakenLast = piecesTakenCurrent;
+
+				if (_liberties[foundGroup] == 0) {
+					int& points = (color == Color::Black ? _whitePiecesTaken : _blackPiecesTaken);
+					for (int x = 0; x < GetDimensions().X(); ++x) {
+						for (int y = 0; y < GetDimensions().Y(); ++y) {
+							if (_groups[x][y] == foundGroup) {
+								_tiles[x][y] = Color::None;
+								_groups[x][y] = -1;
+								++points;
+								Neighbors(Grid2(x, y), [this, foundGroup](const Grid2& g) {
+									if (_groups[g.X()][g.Y()] != -1 && _groups[g.X()][g.Y()] != foundGroup) {
+										++_liberties[_groups[g.X()][g.Y()]];
+									}
+								});
+							}
+						}
+					}
+					_liberties[foundGroup] = -1;
 				}
 			}
+			_history.emplace_back(position, color);
+			/*
+
+			std::cout << "\n\n";
+
+			// First, print the top row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+
+			// Now, for each row, print the sides and any tiles.
+			for (int y = 0; y < GetDimensions().Y(); ++y) {
+				std::cout << "|";
+				for (int x = 0; x < GetDimensions().X(); ++x) {
+					std::cout << ((_groups[x][y] == -1) ? '?' : static_cast<char>(_groups[x][y] + '0'));
+				}
+				std::cout << "|\n";
+			}
+
+			// Finally print the bottom row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+
+			std::cout << "\n\n";
+
+			// First, print the top row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+
+			// Now, for each row, print the sides and any tiles.
+			for (int y = 0; y < GetDimensions().Y(); ++y) {
+				std::cout << "|";
+				for (int x = 0; x < GetDimensions().X(); ++x) {
+					std::cout << ((_groups[x][y] == -1) ? '?' : static_cast<char>(_liberties[_groups[x][y]] + '0'));
+				}
+				std::cout << "|\n";
+			}
+
+			// Finally print the bottom row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+			*/
+
 		} else {
 			std::stringstream s;
 			s << "Board tried to place a " << (color == Color::Black ? "BLACK" : "WHITE") << " piece at (" << position.X() << ", " << position.Y() << ") but it is invalid. Your AI or UI should check IsMoveValid() is true before calling PlacePiece() or ActDecision()!";
@@ -144,45 +264,54 @@ namespace BeitaGo {
 	}
 
 	double Board::ScoreArea() const {
-		//TODO: This is not accurate!
-		int whiteTiles = 0;
+		std::vector<std::vector<Color>> workingBoard(_tiles);
+		std::vector<std::vector<bool>> seenTiles(GetDimensions().X(), std::vector<bool>(GetDimensions().Y(), false));
 		int blackTiles = 0;
-		std::vector<std::vector<Grid2>> noneTiles(_liberties.size());
-		for (int y = 0; y < GetDimensions().Y(); ++y) {
-			for (int x = 0; x < GetDimensions().X(); ++x) {
-				if (GetTile(Grid2(x, y)) == Color::White) {
-					++whiteTiles;
-				} else if (GetTile(Grid2(x, y)) == Color::Black) {
-					++blackTiles;
-				} else {
-					noneTiles[_groups[x][y]].emplace_back(x, y);
-				}
-			}
-		}
-		// Now to handle blank groups. If that group is surrounded exclusively by one color
-		// then it belongs to that group. Otherwise it is not counted.
-		int i = 0;
-		for (const auto& group : noneTiles) {
-			if (group.size() > 0) {
-				bool seenWhite = false;
-				bool seenBlack = false;
-				for (const Grid2& b : group) {
-					Neighbors(b, [this, &seenWhite, &seenBlack](const Grid2& g) {
-						seenBlack |= (GetTile(g) == Color::Black);
-						seenWhite |= (GetTile(g) == Color::White);
-					});
-					if (seenWhite && seenBlack) {
-						break;
+		int whiteTiles = 0;
+		for (int x = 0; x < GetDimensions().X(); ++x) {
+			for (int y = 0; y < GetDimensions().Y(); ++y) {
+				if (!seenTiles[x][y]) {
+					seenTiles[x][y] = true;
+					if (workingBoard[x][y] == Color::None) {
+						std::queue<Grid2> workingQueue;
+						std::vector<Grid2> seenSpaces;
+						workingQueue.push(Grid2(x, y));
+						seenSpaces.emplace_back(x, y);
+						bool seenBlack = false;
+						bool seenWhite = false;
+						while (!workingQueue.empty()) {
+							Grid2 currentSpace = workingQueue.front();
+							workingQueue.pop();
+							Neighbors(currentSpace, [&workingBoard, &workingQueue, &seenSpaces, &seenTiles, &seenWhite, &seenBlack](const Grid2& g) {
+								if (workingBoard[g.X()][g.Y()] == Color::None && !seenTiles[g.X()][g.Y()]) {
+									workingQueue.push(g);
+									seenTiles[g.X()][g.Y()] = true;
+									seenSpaces.push_back(g);
+								} else if (workingBoard[g.X()][g.Y()] == Color::White) {
+									seenWhite = true;
+								} else if (workingBoard[g.X()][g.Y()] == Color::Black) {
+									seenBlack = true;
+								}
+							});
+						}
+						if (seenBlack && !seenWhite) {
+							for (const Grid2& g : seenSpaces) {
+								workingBoard[g.X()][g.Y()] = Color::Black;
+								++blackTiles;
+							}
+						} else if (seenWhite && !seenBlack) {
+							for (const Grid2& g : seenSpaces) {
+								workingBoard[g.X()][g.Y()] = Color::White;
+								++whiteTiles;
+							}
+						}
+					} else if (workingBoard[x][y] == Color::Black) {
+						++blackTiles;
+					} else if (workingBoard[x][y] == Color::White) {
+						++whiteTiles;
 					}
 				}
-				if (seenWhite && !seenBlack) {
-					whiteTiles += static_cast<int>(group.size());
-				} else if (seenBlack && !seenWhite) {
-					blackTiles += static_cast<int>(group.size());
-				} else {
-				}
 			}
-			++i;
 		}
 		return whiteTiles - blackTiles + GetKomi();
 	}
@@ -282,44 +411,6 @@ namespace BeitaGo {
 					++_whitePiecesTaken;
 				}
 				_tiles[space.X()][space.Y()] = Color::None;
-			}
-		}
-	}
-
-	void Board::RecomputeGroupsAndLiberties() {
-		_groups = std::vector<std::vector<int>>(_dimensions.X(), std::vector<int>(_dimensions.Y(), 0));
-		int currentIndex = 1;
-		for (int x = 0; x < _dimensions.X(); ++x) {
-			for (int y = 0; y < _dimensions.Y(); ++y) {
-				if (_groups[x][y] == 0) {
-					_groups[x][y] = currentIndex;
-					Color color = GetTile(Grid2(x, y));
-					std::stack<Grid2> spacesToCheck;
-					spacesToCheck.emplace(x, y);
-					while (!spacesToCheck.empty()) {
-						Grid2 currentSpace = spacesToCheck.top();
-						spacesToCheck.pop();
-						Neighbors(currentSpace, [this, &spacesToCheck, currentIndex, color](const Grid2& g) {
-							if (_groups[g.X()][g.Y()] == 0 && GetTile(g) == color) {
-								_groups[g.X()][g.Y()] = currentIndex;
-								spacesToCheck.push(g);
-							}
-						});
-					}
-					++currentIndex;
-				}
-			}
-		}
-
-		_liberties = std::vector<int>(currentIndex, 0);
-		for (int x = 0; x < _dimensions.X(); ++x) {
-			for (int y = 0; y < _dimensions.Y(); ++y) {
-				Color color = GetTile(Grid2(x, y));
-				if (color == Color::None) {
-					Neighbors(Grid2(x, y), [this](const Grid2& g) {
-						++_liberties[_groups[g.X()][g.Y()]];
-					});
-				}
 			}
 		}
 	}

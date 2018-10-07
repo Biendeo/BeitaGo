@@ -12,6 +12,8 @@ namespace BeitaGo {
 		public:
 		NNMonteCarloTree(const Board& board, DeepLearningAIPlayer::NetworkType network);
 
+		~NNMonteCarloTree();
+
 		/**
 		 * Runs an iteration of the Monte Carlo Tree Search.
 		 */

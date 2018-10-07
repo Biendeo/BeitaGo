@@ -185,11 +185,6 @@ namespace BeitaGo {
 		void ClearPossibleTiles(const Grid2& position);
 
 		/**
-		 * Recomputes the groups and liberties cached.
-		 */
-		void RecomputeGroupsAndLiberties();
-
-		/**
 		 * Gets the direct neighbors to this Grid2 and runs a function on each one.
 		 * Automatically culls positions that are outside of the board.
 		 */
