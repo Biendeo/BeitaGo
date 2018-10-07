@@ -17,7 +17,6 @@ namespace BeitaGo {
 		_whitePiecesTaken = 0;
 		_turnCount = 1;
 		_komi = 6.5;
-		_score = _komi;
 	}
 
 	Grid2 Board::GetDimensions() const {
@@ -148,7 +147,59 @@ namespace BeitaGo {
 				}
 			}
 			_history.emplace_back(position, color);
-			ComputeScore();
+			/*
+
+			std::cout << "\n\n";
+
+			// First, print the top row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+
+			// Now, for each row, print the sides and any tiles.
+			for (int y = 0; y < GetDimensions().Y(); ++y) {
+				std::cout << "|";
+				for (int x = 0; x < GetDimensions().X(); ++x) {
+					std::cout << ((_groups[x][y] == -1) ? '?' : static_cast<char>(_groups[x][y] + '0'));
+				}
+				std::cout << "|\n";
+			}
+
+			// Finally print the bottom row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+
+			std::cout << "\n\n";
+
+			// First, print the top row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+
+			// Now, for each row, print the sides and any tiles.
+			for (int y = 0; y < GetDimensions().Y(); ++y) {
+				std::cout << "|";
+				for (int x = 0; x < GetDimensions().X(); ++x) {
+					std::cout << ((_groups[x][y] == -1) ? '?' : static_cast<char>(_liberties[_groups[x][y]] + '0'));
+				}
+				std::cout << "|\n";
+			}
+
+			// Finally print the bottom row.
+			std::cout << "+";
+			for (int x = 0; x < GetDimensions().X(); ++x) {
+				std::cout << "-";
+			}
+			std::cout << "+\n";
+			*/
+
 		} else {
 			std::stringstream s;
 			s << "Board tried to place a " << (color == Color::Black ? "BLACK" : "WHITE") << " piece at (" << position.X() << ", " << position.Y() << ") but it is invalid. Your AI or UI should check IsMoveValid() is true before calling PlacePiece() or ActDecision()!";
@@ -213,7 +264,56 @@ namespace BeitaGo {
 	}
 
 	double Board::ScoreArea() const {
-		return _score;
+		std::vector<std::vector<Color>> workingBoard(_tiles);
+		std::vector<std::vector<bool>> seenTiles(GetDimensions().X(), std::vector<bool>(GetDimensions().Y(), false));
+		int blackTiles = 0;
+		int whiteTiles = 0;
+		for (int x = 0; x < GetDimensions().X(); ++x) {
+			for (int y = 0; y < GetDimensions().Y(); ++y) {
+				if (!seenTiles[x][y]) {
+					seenTiles[x][y] = true;
+					if (workingBoard[x][y] == Color::None) {
+						std::queue<Grid2> workingQueue;
+						std::vector<Grid2> seenSpaces;
+						workingQueue.push(Grid2(x, y));
+						seenSpaces.emplace_back(x, y);
+						bool seenBlack = false;
+						bool seenWhite = false;
+						while (!workingQueue.empty()) {
+							Grid2 currentSpace = workingQueue.front();
+							workingQueue.pop();
+							Neighbors(currentSpace, [&workingBoard, &workingQueue, &seenSpaces, &seenTiles, &seenWhite, &seenBlack](const Grid2& g) {
+								if (workingBoard[g.X()][g.Y()] == Color::None && !seenTiles[g.X()][g.Y()]) {
+									workingQueue.push(g);
+									seenTiles[g.X()][g.Y()] = true;
+									seenSpaces.push_back(g);
+								} else if (workingBoard[g.X()][g.Y()] == Color::White) {
+									seenWhite = true;
+								} else if (workingBoard[g.X()][g.Y()] == Color::Black) {
+									seenBlack = true;
+								}
+							});
+						}
+						if (seenBlack && !seenWhite) {
+							for (const Grid2& g : seenSpaces) {
+								workingBoard[g.X()][g.Y()] = Color::Black;
+								++blackTiles;
+							}
+						} else if (seenWhite && !seenBlack) {
+							for (const Grid2& g : seenSpaces) {
+								workingBoard[g.X()][g.Y()] = Color::White;
+								++whiteTiles;
+							}
+						}
+					} else if (workingBoard[x][y] == Color::Black) {
+						++blackTiles;
+					} else if (workingBoard[x][y] == Color::White) {
+						++whiteTiles;
+					}
+				}
+			}
+		}
+		return whiteTiles - blackTiles + GetKomi();
 	}
 
 	int Board::GetLiberties(const Grid2& position) const {
@@ -313,59 +413,6 @@ namespace BeitaGo {
 				_tiles[space.X()][space.Y()] = Color::None;
 			}
 		}
-	}
-
-	void Board::ComputeScore() {
-		std::vector<std::vector<Color>> workingBoard(_tiles);
-		std::vector<std::vector<bool>> seenTiles(GetDimensions().X(), std::vector<bool>(GetDimensions().Y(), false));
-		int blackTiles = 0;
-		int whiteTiles = 0;
-		for (int x = 0; x < GetDimensions().X(); ++x) {
-			for (int y = 0; y < GetDimensions().Y(); ++y) {
-				if (!seenTiles[x][y]) {
-					seenTiles[x][y] = true;
-					if (workingBoard[x][y] == Color::None) {
-						std::queue<Grid2> workingQueue;
-						std::vector<Grid2> seenSpaces;
-						workingQueue.push(Grid2(x, y));
-						seenSpaces.emplace_back(x, y);
-						bool seenBlack = false;
-						bool seenWhite = false;
-						while (!workingQueue.empty()) {
-							Grid2 currentSpace = workingQueue.front();
-							workingQueue.pop();
-							Neighbors(currentSpace, [&workingBoard, &workingQueue, &seenSpaces, &seenTiles, &seenWhite, &seenBlack](const Grid2& g) {
-								if (workingBoard[g.X()][g.Y()] == Color::None && !seenTiles[g.X()][g.Y()]) {
-									workingQueue.push(g);
-									seenTiles[g.X()][g.Y()] = true;
-									seenSpaces.push_back(g);
-								} else if (workingBoard[g.X()][g.Y()] == Color::White) {
-									seenWhite = true;
-								} else if (workingBoard[g.X()][g.Y()] == Color::Black) {
-									seenBlack = true;
-								}
-							});
-						}
-						if (seenBlack && !seenWhite) {
-							for (const Grid2& g : seenSpaces) {
-								workingBoard[g.X()][g.Y()] = Color::Black;
-								++blackTiles;
-							}
-						} else if (seenWhite && !seenBlack) {
-							for (const Grid2& g : seenSpaces) {
-								workingBoard[g.X()][g.Y()] = Color::White;
-								++whiteTiles;
-							}
-						}
-					} else if (workingBoard[x][y] == Color::Black) {
-						++blackTiles;
-					} else if (workingBoard[x][y] == Color::White) {
-						++whiteTiles;
-					}
-				}
-			}
-		}
-		_score = whiteTiles - blackTiles + GetKomi();
 	}
 
 	inline void Board::Neighbors(const Grid2& g, std::function<void(const Grid2&)> f) const {

@@ -185,11 +185,6 @@ namespace BeitaGo {
 		void ClearPossibleTiles(const Grid2& position);
 
 		/**
-		 * Computes the score and caches it.
-		 */
-		void ComputeScore();
-
-		/**
 		 * Gets the direct neighbors to this Grid2 and runs a function on each one.
 		 * Automatically culls positions that are outside of the board.
 		 */
@@ -207,7 +202,6 @@ namespace BeitaGo {
 		int _whitePiecesTaken;
 		int _turnCount;
 		double _komi;
-		double _score;
 	};
 }
 
