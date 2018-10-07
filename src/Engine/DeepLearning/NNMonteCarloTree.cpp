@@ -13,7 +13,7 @@ namespace BeitaGo {
 	}
 
 	NNMonteCarloTree::~NNMonteCarloTree() {
-		_network.clean();
+		//_network.clean();
 	}
 
 	void NNMonteCarloTree::RunSimulation() {

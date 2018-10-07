@@ -21,7 +21,7 @@ namespace BeitaGo {
 	DeepLearningAIPlayer::DeepLearningAIPlayer(Engine& engine, Color color, const std::chrono::duration<double>& thinkingTime, DeepLearningAIPlayer::NetworkType& network) : MonteCarloAIPlayer(engine, color, thinkingTime), _network(network), _heuristicValues{0.0}, _totalSimulations(0) {}
 
 	DeepLearningAIPlayer::~DeepLearningAIPlayer() {
-		_network.clean();
+		//_network.clean();
 	}
 
 	Grid2 DeepLearningAIPlayer::MakeDecision() const {
