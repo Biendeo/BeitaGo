@@ -16,7 +16,7 @@
 
 using namespace BeitaGo;
 
-const std::chrono::duration<double> TRAINING_TIME = std::chrono::duration<double>(1.0);
+const std::chrono::duration<double> TRAINING_TIME = std::chrono::duration<double>(10.0);
 const std::chrono::duration<double> MATCH_TIME = std::chrono::duration<double>(5.0);
 
 const std::string CURRENT_NETWORK_PATH = "BeitaGo_network.dat";
