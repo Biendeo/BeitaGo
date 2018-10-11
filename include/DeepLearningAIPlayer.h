@@ -35,7 +35,18 @@ namespace BeitaGo {
 		 * The network represents the output as just a vector of all the moves that can be done.
 		 */
 		static constexpr int OUTPUT_VECTOR_SIZE = EXPECTED_BOARD_SIZE * EXPECTED_BOARD_SIZE + 1;
-		using NetworkType = dlib::loss_multiclass_log<dlib::fc<OUTPUT_VECTOR_SIZE, dlib::relu<dlib::fc<100, dlib::relu<dlib::input<dlib::matrix<unsigned char>>>>>>>;
+
+		
+		template <typename SUBNET>
+		using ConvolutionalBlock = dlib::relu<dlib::bn_con<dlib::con<16, 3, 3, 1, 1, SUBNET>>>;
+		//TODO: This needs a skip layer.
+		template <typename SUBNET>
+		using ResidualBlock = ConvolutionalBlock<ConvolutionalBlock<SUBNET>>;
+		//TODO: I'm not using a residual block here for performance reasons; can this be better?
+		using NetworkType = dlib::loss_multiclass_log<dlib::fc<OUTPUT_VECTOR_SIZE, ConvolutionalBlock<dlib::input<dlib::matrix<unsigned char>>>>>;
+		
+		// Ye olde two layer network. Trains fast, but isn't accurate.
+		//using NetworkType = dlib::loss_multiclass_log<dlib::fc<OUTPUT_VECTOR_SIZE, dlib::relu<dlib::fc<100, dlib::relu<dlib::input<dlib::matrix<unsigned char>>>>>>>;
 
 
 		/**

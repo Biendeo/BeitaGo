@@ -147,8 +147,8 @@ namespace BeitaGo {
 				}
 			}
 			_history.emplace_back(position, color);
+			
 			/*
-
 			std::cout << "\n\n";
 
 			// First, print the top row.
@@ -162,7 +162,7 @@ namespace BeitaGo {
 			for (int y = 0; y < GetDimensions().Y(); ++y) {
 				std::cout << "|";
 				for (int x = 0; x < GetDimensions().X(); ++x) {
-					std::cout << ((_groups[x][y] == -1) ? '?' : static_cast<char>(_groups[x][y] + '0'));
+					std::cout << ((_groups[x][y] == -1) ? '.' : static_cast<char>(_groups[x][y] + '0'));
 				}
 				std::cout << "|\n";
 			}
@@ -187,7 +187,7 @@ namespace BeitaGo {
 			for (int y = 0; y < GetDimensions().Y(); ++y) {
 				std::cout << "|";
 				for (int x = 0; x < GetDimensions().X(); ++x) {
-					std::cout << ((_groups[x][y] == -1) ? '?' : static_cast<char>(_liberties[_groups[x][y]] + '0'));
+					std::cout << ((_groups[x][y] == -1) ? '.' : static_cast<char>(_liberties[_groups[x][y]] + '0'));
 				}
 				std::cout << "|\n";
 			}
@@ -199,6 +199,8 @@ namespace BeitaGo {
 			}
 			std::cout << "+\n";
 			*/
+			
+			
 
 		} else {
 			std::stringstream s;

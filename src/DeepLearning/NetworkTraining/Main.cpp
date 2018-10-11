@@ -16,7 +16,7 @@
 
 using namespace BeitaGo;
 
-const std::chrono::duration<double> TRAINING_TIME = std::chrono::duration<double>(1.0);
+const std::chrono::duration<double> TRAINING_TIME = std::chrono::duration<double>(10.0);
 const std::chrono::duration<double> MATCH_TIME = std::chrono::duration<double>(5.0);
 
 const std::string CURRENT_NETWORK_PATH = "BeitaGo_network.dat";
@@ -113,8 +113,8 @@ bool PlayValidation(int numberOfMatches, double winPercentage, DeepLearningAIPla
 }
 
 void Loop() {
-	constexpr int NUM_TRAINING_GAMES = 25000;
-	constexpr int NUM_TESTING_GAMES = 400;
+	constexpr int NUM_TRAINING_GAMES = 50;
+	constexpr int NUM_TESTING_GAMES = 50;
 	constexpr double WIN_PERCENTAGE = 0.55;
 
 	DeepLearningAIPlayer::NetworkType currentNetwork;
